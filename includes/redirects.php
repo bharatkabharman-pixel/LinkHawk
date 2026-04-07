@@ -15,13 +15,18 @@ function lgp_handle_redirects() {
 
     global $wpdb;
 
-    // Build the current request path (with trailing slash for normalisation).
     $request_uri = isset( $_SERVER['REQUEST_URI'] ) ? sanitize_text_field( wp_unslash( $_SERVER['REQUEST_URI'] ) ) : '/';
 
-    // Strip query string for matching (we match on path only).
-    $path = trailingslashit( strtok( $request_uri, '?' ) );
+    // Strip query string.
+    $path = strtok( $request_uri, '?' );
 
-    // Also try without trailing slash.
+    // Build 4 variants to match against whatever format was saved in DB:
+    // full URL with/without trailing slash + path with/without trailing slash.
+    $scheme   = is_ssl() ? 'https' : 'http';
+    $host     = isset( $_SERVER['HTTP_HOST'] ) ? sanitize_text_field( wp_unslash( $_SERVER['HTTP_HOST'] ) ) : '';
+    $full_url = trailingslashit( $scheme . '://' . $host . $path );
+    $full_url_no_slash = rtrim( $full_url, '/' );
+    $path_slash    = trailingslashit( $path );
     $path_no_slash = rtrim( $path, '/' );
 
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
@@ -31,8 +36,12 @@ function lgp_handle_redirects() {
                FROM {$wpdb->prefix}linkguard_redirects
               WHERE source_url = %s
                  OR source_url = %s
+                 OR source_url = %s
+                 OR source_url = %s
               LIMIT 1",
-            $path,
+            $full_url,
+            $full_url_no_slash,
+            $path_slash,
             $path_no_slash
         )
     );
