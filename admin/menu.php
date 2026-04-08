@@ -4,39 +4,39 @@ defined( 'ABSPATH' ) || exit;
 add_action( 'admin_menu', 'lgp_register_admin_menu' );
 function lgp_register_admin_menu() {
     add_menu_page(
-        __( 'LinkHawk', 'linkguard' ),
-        __( 'LinkHawk', 'linkguard' ),
+        __( 'LinkHawk', 'linkhawk' ),
+        __( 'LinkHawk', 'linkhawk' ),
         'manage_options',
-        'linkguard',
+        'linkhawk',
         'lgp_render_dashboard',
         'dashicons-admin-links',
         80
     );
 
     add_submenu_page(
-        'linkguard',
-        __( 'Broken Links', 'linkguard' ),
-        __( 'Broken Links', 'linkguard' ),
+        'linkhawk',
+        __( 'Broken Links', 'linkhawk' ),
+        __( 'Broken Links', 'linkhawk' ),
         'manage_options',
-        'linkguard',
+        'linkhawk',
         'lgp_render_dashboard'
     );
 
     add_submenu_page(
-        'linkguard',
-        __( '301 Redirects', 'linkguard' ),
-        __( '301 Redirects', 'linkguard' ),
+        'linkhawk',
+        __( '301 Redirects', 'linkhawk' ),
+        __( '301 Redirects', 'linkhawk' ),
         'manage_options',
-        'linkguard-redirects',
+        'linkhawk-redirects',
         'lgp_render_redirects_page'
     );
 
     add_submenu_page(
-        'linkguard',
-        __( 'Settings', 'linkguard' ),
-        __( 'Settings', 'linkguard' ),
+        'linkhawk',
+        __( 'Settings', 'linkhawk' ),
+        __( 'Settings', 'linkhawk' ),
         'manage_options',
-        'linkguard-settings',
+        'linkhawk-settings',
         'lgp_render_settings_page'
     );
 }
@@ -44,9 +44,9 @@ function lgp_register_admin_menu() {
 add_action( 'admin_enqueue_scripts', 'lgp_enqueue_admin_assets' );
 function lgp_enqueue_admin_assets( $hook ) {
     $our_hooks = [
-        'toplevel_page_linkguard',
-        'linkguard_page_linkguard-redirects',
-        'linkguard_page_linkguard-settings',
+        'toplevel_page_linkhawk',
+        'linkhawk_page_linkhawk-redirects',
+        'linkhawk_page_linkhawk-settings',
     ];
 
     if ( ! in_array( $hook, $our_hooks, true ) ) {
@@ -54,21 +54,21 @@ function lgp_enqueue_admin_assets( $hook ) {
     }
 
     wp_enqueue_style(
-        'linkguard-admin',
+        'linkhawk-admin',
         LINKGUARD_URL . 'assets/css/admin.css',
         [],
         LINKGUARD_VERSION
     );
 
     wp_enqueue_script(
-        'linkguard-admin',
+        'linkhawk-admin',
         LINKGUARD_URL . 'assets/js/admin.js',
         [ 'jquery' ],
         LINKGUARD_VERSION,
         true
     );
 
-    wp_localize_script( 'linkguard-admin', 'lgpData', [
+    wp_localize_script( 'linkhawk-admin', 'lgpData', [
         'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
         'scanNonce'       => wp_create_nonce( 'lgp_scan_now' ),
         'deleteNonce'     => wp_create_nonce( 'lgp_delete_link' ),
@@ -77,17 +77,17 @@ function lgp_enqueue_admin_assets( $hook ) {
         'delRedNonce'     => wp_create_nonce( 'lgp_delete_redirect' ),
         'exportNonce'     => wp_create_nonce( 'lgp_export_csv' ),
         'ignoreNonce'     => wp_create_nonce( 'lgp_ignore_url' ),
-        'redirectsUrl'    => admin_url( 'admin.php?page=linkguard-redirects' ),
+        'redirectsUrl'    => admin_url( 'admin.php?page=linkhawk-redirects' ),
         'exportUrl'       => admin_url( 'admin-ajax.php?action=lgp_export_csv&nonce=' . wp_create_nonce( 'lgp_export_csv' ) ),
         'i18n'            => [
-            'scanning'      => __( 'Scanning…', 'linkguard' ),
-            'scanDone'      => __( 'Scan complete!', 'linkguard' ),
-            'scanError'     => __( 'Scan failed. Please try again.', 'linkguard' ),
-            'confirm'       => __( 'Are you sure?', 'linkguard' ),
-            'bulkConfirm'   => __( 'Dismiss all selected broken links?', 'linkguard' ),
-            'noneSelected'  => __( 'Please select at least one link.', 'linkguard' ),
-            'ignoreConfirm' => __( 'Ignore this URL in all future scans?', 'linkguard' ),
-            'postOf'        => __( 'of', 'linkguard' ),
+            'scanning'      => __( 'Scanning…', 'linkhawk' ),
+            'scanDone'      => __( 'Scan complete!', 'linkhawk' ),
+            'scanError'     => __( 'Scan failed. Please try again.', 'linkhawk' ),
+            'confirm'       => __( 'Are you sure?', 'linkhawk' ),
+            'bulkConfirm'   => __( 'Dismiss all selected broken links?', 'linkhawk' ),
+            'noneSelected'  => __( 'Please select at least one link.', 'linkhawk' ),
+            'ignoreConfirm' => __( 'Ignore this URL in all future scans?', 'linkhawk' ),
+            'postOf'        => __( 'of', 'linkhawk' ),
         ],
     ] );
 }
@@ -96,21 +96,21 @@ function lgp_enqueue_admin_assets( $hook ) {
 
 function lgp_render_dashboard() {
     if ( ! current_user_can( 'manage_options' ) ) {
-        wp_die( esc_html__( 'You do not have permission to view this page.', 'linkguard' ) );
+        wp_die( esc_html__( 'You do not have permission to view this page.', 'linkhawk' ) );
     }
     require_once LINKGUARD_DIR . 'admin/views/dashboard.php';
 }
 
 function lgp_render_redirects_page() {
     if ( ! current_user_can( 'manage_options' ) ) {
-        wp_die( esc_html__( 'You do not have permission to view this page.', 'linkguard' ) );
+        wp_die( esc_html__( 'You do not have permission to view this page.', 'linkhawk' ) );
     }
     require_once LINKGUARD_DIR . 'admin/views/redirects.php';
 }
 
 function lgp_render_settings_page() {
     if ( ! current_user_can( 'manage_options' ) ) {
-        wp_die( esc_html__( 'You do not have permission to view this page.', 'linkguard' ) );
+        wp_die( esc_html__( 'You do not have permission to view this page.', 'linkhawk' ) );
     }
     require_once LINKGUARD_DIR . 'admin/views/settings.php';
 }

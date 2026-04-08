@@ -17,7 +17,7 @@ function lgp_run_scan() {
         $total_broken += lgp_scan_single_post( $post, $excluded, $ignored_hashes, $timeout );
     }
 
-    update_option( 'linkguard_last_scan', current_time( 'mysql' ) );
+    update_option( 'linkhawk_last_scan', current_time( 'mysql' ) );
 
     return [
         'scanned' => count( $posts ),
@@ -279,7 +279,7 @@ function lgp_check_url( $url, $timeout = 10 ) {
     $args = [
         'timeout'     => max( 5, (int) $timeout ),
         'redirection' => 3,
-        'user-agent'  => 'LinkHawk/' . LINKGUARD_VERSION . ' (WordPress broken-link checker; +https://trsoftech.com)',
+        'user-agent'  => 'LinkHawk/' . LINKHAWK_VERSION . ' (WordPress broken-link checker; +https://trsoftech.com)',
         'sslverify'   => false,
     ];
 

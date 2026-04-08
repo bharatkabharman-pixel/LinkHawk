@@ -9,7 +9,7 @@ if ( isset( $_POST['lgp_settings_submit'] ) ) {
     check_admin_referer( 'lgp_save_settings' );
 
     if ( ! current_user_can( 'manage_options' ) ) {
-        wp_die( esc_html__( 'Permission denied.', 'linkguard' ) );
+        wp_die( esc_html__( 'Permission denied.', 'linkhawk' ) );
     }
 
     $timeout          = max( 5, min( 60, absint( $_POST['lgp_timeout'] ?? 10 ) ) );
@@ -19,7 +19,7 @@ if ( isset( $_POST['lgp_settings_submit'] ) ) {
     $excluded_domains = sanitize_textarea_field( wp_unslash( $_POST['lgp_excluded_domains'] ?? '' ) );
 
     if ( '1' === $email_notify && ! is_email( $notify_email ) ) {
-        $error = __( 'Please enter a valid notification email address.', 'linkguard' );
+        $error = __( 'Please enter a valid notification email address.', 'linkhawk' );
     } else {
         update_option( 'lgp_timeout', $timeout );
         update_option( 'lgp_per_page', $per_page );
@@ -42,11 +42,11 @@ $next_cron = wp_next_scheduled( 'lgp_daily_scan' );
 
     <h1 class="lgp-page-title">
         <span class="dashicons dashicons-admin-settings"></span>
-        <?php esc_html_e( 'LinkHawk — Settings', 'linkguard' ); ?>
+        <?php esc_html_e( 'LinkHawk — Settings', 'linkhawk' ); ?>
     </h1>
 
     <?php if ( $saved ) : ?>
-        <div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Settings saved successfully.', 'linkguard' ); ?></p></div>
+        <div class="notice notice-success is-dismissible"><p><?php esc_html_e( 'Settings saved successfully.', 'linkhawk' ); ?></p></div>
     <?php endif; ?>
 
     <?php if ( $error ) : ?>
@@ -58,12 +58,12 @@ $next_cron = wp_next_scheduled( 'lgp_daily_scan' );
 
         <!-- ── Scanner Settings ── -->
         <div class="lgp-card">
-            <h2><?php esc_html_e( 'Scanner Settings', 'linkguard' ); ?></h2>
+            <h2><?php esc_html_e( 'Scanner Settings', 'linkhawk' ); ?></h2>
 
             <table class="form-table" role="presentation">
                 <tr>
                     <th scope="row">
-                        <label for="lgp_timeout"><?php esc_html_e( 'Request Timeout', 'linkguard' ); ?></label>
+                        <label for="lgp_timeout"><?php esc_html_e( 'Request Timeout', 'linkhawk' ); ?></label>
                     </th>
                     <td>
                         <input
@@ -74,13 +74,13 @@ $next_cron = wp_next_scheduled( 'lgp_daily_scan' );
                             min="5"
                             max="60"
                             class="small-text"
-                        /> <?php esc_html_e( 'seconds', 'linkguard' ); ?>
-                        <p class="description"><?php esc_html_e( 'How long to wait before marking a URL as timed out. (5–60 seconds)', 'linkguard' ); ?></p>
+                        /> <?php esc_html_e( 'seconds', 'linkhawk' ); ?>
+                        <p class="description"><?php esc_html_e( 'How long to wait before marking a URL as timed out. (5–60 seconds)', 'linkhawk' ); ?></p>
                     </td>
                 </tr>
                 <tr>
                     <th scope="row">
-                        <label for="lgp_per_page"><?php esc_html_e( 'Links Per Page', 'linkguard' ); ?></label>
+                        <label for="lgp_per_page"><?php esc_html_e( 'Links Per Page', 'linkhawk' ); ?></label>
                     </th>
                     <td>
                         <input
@@ -92,12 +92,12 @@ $next_cron = wp_next_scheduled( 'lgp_daily_scan' );
                             max="200"
                             class="small-text"
                         />
-                        <p class="description"><?php esc_html_e( 'Number of broken links to show per page in the dashboard. (5–200)', 'linkguard' ); ?></p>
+                        <p class="description"><?php esc_html_e( 'Number of broken links to show per page in the dashboard. (5–200)', 'linkhawk' ); ?></p>
                     </td>
                 </tr>
                 <tr>
                     <th scope="row">
-                        <?php esc_html_e( 'Excluded Domains', 'linkguard' ); ?>
+                        <?php esc_html_e( 'Excluded Domains', 'linkhawk' ); ?>
                     </th>
                     <td>
                         <textarea
@@ -107,7 +107,7 @@ $next_cron = wp_next_scheduled( 'lgp_daily_scan' );
                             class="large-text code"
                             placeholder="example.com&#10;cdn.example.org"
                         ><?php echo esc_textarea( $opt_excluded ); ?></textarea>
-                        <p class="description"><?php esc_html_e( 'One domain per line. Links pointing to these domains will be skipped during scans.', 'linkguard' ); ?></p>
+                        <p class="description"><?php esc_html_e( 'One domain per line. Links pointing to these domains will be skipped during scans.', 'linkhawk' ); ?></p>
                     </td>
                 </tr>
             </table>
@@ -115,26 +115,26 @@ $next_cron = wp_next_scheduled( 'lgp_daily_scan' );
 
         <!-- ── Cron Status ── -->
         <div class="lgp-card">
-            <h2><?php esc_html_e( 'Automatic Scan Schedule', 'linkguard' ); ?></h2>
+            <h2><?php esc_html_e( 'Automatic Scan Schedule', 'linkhawk' ); ?></h2>
 
             <table class="form-table" role="presentation">
                 <tr>
-                    <th scope="row"><?php esc_html_e( 'Daily Scan', 'linkguard' ); ?></th>
+                    <th scope="row"><?php esc_html_e( 'Daily Scan', 'linkhawk' ); ?></th>
                     <td>
                         <?php if ( $next_cron ) : ?>
-                            <span class="lgp-badge lgp-badge-ok"><?php esc_html_e( 'Active', 'linkguard' ); ?></span>
+                            <span class="lgp-badge lgp-badge-ok"><?php esc_html_e( 'Active', 'linkhawk' ); ?></span>
                             <span style="margin-left:8px;color:#646970;">
                                 <?php
                                 printf(
                                     /* translators: %s: human-readable time diff */
-                                    esc_html__( 'Next run in %s', 'linkguard' ),
+                                    esc_html__( 'Next run in %s', 'linkhawk' ),
                                     esc_html( human_time_diff( time(), $next_cron ) )
                                 );
                                 ?>
                             </span>
                         <?php else : ?>
-                            <span class="lgp-badge lgp-badge-error"><?php esc_html_e( 'Not scheduled', 'linkguard' ); ?></span>
-                            <p class="description"><?php esc_html_e( 'Deactivate and re-activate the plugin to re-schedule.', 'linkguard' ); ?></p>
+                            <span class="lgp-badge lgp-badge-error"><?php esc_html_e( 'Not scheduled', 'linkhawk' ); ?></span>
+                            <p class="description"><?php esc_html_e( 'Deactivate and re-activate the plugin to re-schedule.', 'linkhawk' ); ?></p>
                         <?php endif; ?>
                     </td>
                 </tr>
@@ -143,11 +143,11 @@ $next_cron = wp_next_scheduled( 'lgp_daily_scan' );
 
         <!-- ── Email Notifications ── -->
         <div class="lgp-card">
-            <h2><?php esc_html_e( 'Email Notifications', 'linkguard' ); ?></h2>
+            <h2><?php esc_html_e( 'Email Notifications', 'linkhawk' ); ?></h2>
 
             <table class="form-table" role="presentation">
                 <tr>
-                    <th scope="row"><?php esc_html_e( 'Enable Notifications', 'linkguard' ); ?></th>
+                    <th scope="row"><?php esc_html_e( 'Enable Notifications', 'linkhawk' ); ?></th>
                     <td>
                         <label>
                             <input
@@ -157,13 +157,13 @@ $next_cron = wp_next_scheduled( 'lgp_daily_scan' );
                                 value="1"
                                 <?php checked( '1', $opt_email_notify ); ?>
                             />
-                            <?php esc_html_e( 'Send an email when broken links are found after a scan', 'linkguard' ); ?>
+                            <?php esc_html_e( 'Send an email when broken links are found after a scan', 'linkhawk' ); ?>
                         </label>
                     </td>
                 </tr>
                 <tr id="lgp-email-row" <?php echo '1' !== $opt_email_notify ? 'style="display:none;"' : ''; ?>>
                     <th scope="row">
-                        <label for="lgp_notify_email"><?php esc_html_e( 'Notification Email', 'linkguard' ); ?></label>
+                        <label for="lgp_notify_email"><?php esc_html_e( 'Notification Email', 'linkhawk' ); ?></label>
                     </th>
                     <td>
                         <input
@@ -173,7 +173,7 @@ $next_cron = wp_next_scheduled( 'lgp_daily_scan' );
                             value="<?php echo esc_attr( $opt_notify_email ); ?>"
                             class="regular-text"
                         />
-                        <p class="description"><?php esc_html_e( 'Defaults to the WordPress admin email if left empty.', 'linkguard' ); ?></p>
+                        <p class="description"><?php esc_html_e( 'Defaults to the WordPress admin email if left empty.', 'linkhawk' ); ?></p>
                     </td>
                 </tr>
             </table>
@@ -181,20 +181,20 @@ $next_cron = wp_next_scheduled( 'lgp_daily_scan' );
 
         <!-- ── Ignored URLs ── -->
         <div class="lgp-card">
-            <h2><?php esc_html_e( 'Ignored URLs', 'linkguard' ); ?></h2>
+            <h2><?php esc_html_e( 'Ignored URLs', 'linkhawk' ); ?></h2>
             <p class="description" style="margin-bottom:16px;">
-                <?php esc_html_e( 'These URLs are permanently skipped during scans. Click "Remove" to re-enable checking.', 'linkguard' ); ?>
+                <?php esc_html_e( 'These URLs are permanently skipped during scans. Click "Remove" to re-enable checking.', 'linkhawk' ); ?>
             </p>
             <?php $ignored = lgp_get_ignored_urls(); ?>
             <?php if ( empty( $ignored ) ) : ?>
-                <p class="lgp-no-results"><?php esc_html_e( 'No URLs ignored yet. Click "Ignore" on any broken link to add it here.', 'linkguard' ); ?></p>
+                <p class="lgp-no-results"><?php esc_html_e( 'No URLs ignored yet. Click "Ignore" on any broken link to add it here.', 'linkhawk' ); ?></p>
             <?php else : ?>
                 <table class="wp-list-table widefat fixed striped" id="lgp-ignored-table">
                     <thead>
                         <tr>
-                            <th><?php esc_html_e( 'Ignored URL', 'linkguard' ); ?></th>
-                            <th style="width:160px;"><?php esc_html_e( 'Ignored At', 'linkguard' ); ?></th>
-                            <th style="width:80px;"><?php esc_html_e( 'Action', 'linkguard' ); ?></th>
+                            <th><?php esc_html_e( 'Ignored URL', 'linkhawk' ); ?></th>
+                            <th style="width:160px;"><?php esc_html_e( 'Ignored At', 'linkhawk' ); ?></th>
+                            <th style="width:80px;"><?php esc_html_e( 'Action', 'linkhawk' ); ?></th>
                         </tr>
                     </thead>
                     <tbody>
@@ -208,7 +208,7 @@ $next_cron = wp_next_scheduled( 'lgp_daily_scan' );
                             <td><?php echo esc_html( $item->ignored_at ); ?></td>
                             <td>
                                 <button class="button button-small lgp-unignore-btn" data-id="<?php echo esc_attr( $item->id ); ?>">
-                                    <?php esc_html_e( 'Remove', 'linkguard' ); ?>
+                                    <?php esc_html_e( 'Remove', 'linkhawk' ); ?>
                                 </button>
                             </td>
                         </tr>
@@ -225,12 +225,12 @@ $next_cron = wp_next_scheduled( 'lgp_daily_scan' );
             </div>
             <div class="lgp-about-text">
                 <strong>LinkHawk – Broken Link Checker</strong> v<?php echo esc_html( LINKGUARD_VERSION ); ?><br>
-                <?php esc_html_e( 'Built by', 'linkguard' ); ?>
+                <?php esc_html_e( 'Built by', 'linkhawk' ); ?>
                 <a href="https://trsoftech.com" target="_blank" rel="noopener">Kamlesh Kumar Jangir — TRSoftech</a>
             </div>
         </div>
 
-        <?php submit_button( __( 'Save Settings', 'linkguard' ), 'primary large', 'lgp_settings_submit' ); ?>
+        <?php submit_button( __( 'Save Settings', 'linkhawk' ), 'primary large', 'lgp_settings_submit' ); ?>
 
     </form>
 </div>

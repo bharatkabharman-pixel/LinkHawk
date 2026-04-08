@@ -8,7 +8,7 @@ function lgp_ajax_scan_init() {
     check_ajax_referer( 'lgp_scan_now', 'nonce' );
 
     if ( ! current_user_can( 'manage_options' ) ) {
-        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkguard' ) ], 403 );
+        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkhawk' ) ], 403 );
     }
 
     lgp_clear_links();
@@ -28,13 +28,13 @@ function lgp_ajax_scan_post() {
     check_ajax_referer( 'lgp_scan_now', 'nonce' );
 
     if ( ! current_user_can( 'manage_options' ) ) {
-        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkguard' ) ], 403 );
+        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkhawk' ) ], 403 );
     }
 
     $post_id = isset( $_POST['post_id'] ) ? absint( $_POST['post_id'] ) : 0;
 
     if ( ! $post_id ) {
-        wp_send_json_error( [ 'message' => __( 'Invalid post ID.', 'linkguard' ) ] );
+        wp_send_json_error( [ 'message' => __( 'Invalid post ID.', 'linkhawk' ) ] );
     }
 
     $result = lgp_scan_post_by_id( $post_id );
@@ -49,10 +49,10 @@ function lgp_ajax_scan_complete() {
     check_ajax_referer( 'lgp_scan_now', 'nonce' );
 
     if ( ! current_user_can( 'manage_options' ) ) {
-        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkguard' ) ], 403 );
+        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkhawk' ) ], 403 );
     }
 
-    update_option( 'linkguard_last_scan', current_time( 'mysql' ) );
+    update_option( 'linkhawk_last_scan', current_time( 'mysql' ) );
 
     // Email notification if enabled.
     $broken = lgp_count_broken_links();
@@ -65,7 +65,7 @@ function lgp_ajax_scan_complete() {
 
     wp_send_json_success( [
         'broken'    => $broken,
-        'last_scan' => get_option( 'linkguard_last_scan', '' ),
+        'last_scan' => get_option( 'linkhawk_last_scan', '' ),
         'affected'  => lgp_count_affected_posts(),
         'by_type'   => lgp_count_by_type(),
         'html'      => lgp_render_links_table_html(),
@@ -79,7 +79,7 @@ function lgp_ajax_scan_now() {
     check_ajax_referer( 'lgp_scan_now', 'nonce' );
 
     if ( ! current_user_can( 'manage_options' ) ) {
-        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkguard' ) ], 403 );
+        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkhawk' ) ], 403 );
     }
 
     $result = lgp_run_scan();
@@ -91,7 +91,7 @@ function lgp_ajax_scan_now() {
     wp_send_json_success( [
         'scanned'   => (int) $result['scanned'],
         'broken'    => (int) $result['broken'],
-        'last_scan' => get_option( 'linkguard_last_scan', '' ),
+        'last_scan' => get_option( 'linkhawk_last_scan', '' ),
         'html'      => lgp_render_links_table_html(),
     ] );
 }
@@ -103,13 +103,13 @@ function lgp_ajax_delete_link() {
     check_ajax_referer( 'lgp_delete_link', 'nonce' );
 
     if ( ! current_user_can( 'manage_options' ) ) {
-        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkguard' ) ], 403 );
+        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkhawk' ) ], 403 );
     }
 
     $id = isset( $_POST['id'] ) ? absint( $_POST['id'] ) : 0;
 
     if ( ! $id ) {
-        wp_send_json_error( [ 'message' => __( 'Invalid ID.', 'linkguard' ) ] );
+        wp_send_json_error( [ 'message' => __( 'Invalid ID.', 'linkhawk' ) ] );
     }
 
     lgp_delete_link( $id );
@@ -123,14 +123,14 @@ function lgp_ajax_bulk_delete() {
     check_ajax_referer( 'lgp_bulk_delete', 'nonce' );
 
     if ( ! current_user_can( 'manage_options' ) ) {
-        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkguard' ) ], 403 );
+        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkhawk' ) ], 403 );
     }
 
     $raw_ids = isset( $_POST['ids'] ) ? (array) $_POST['ids'] : [];
     $ids     = array_filter( array_map( 'absint', $raw_ids ) );
 
     if ( empty( $ids ) ) {
-        wp_send_json_error( [ 'message' => __( 'No IDs provided.', 'linkguard' ) ] );
+        wp_send_json_error( [ 'message' => __( 'No IDs provided.', 'linkhawk' ) ] );
     }
 
     foreach ( $ids as $id ) {
@@ -147,14 +147,14 @@ function lgp_ajax_ignore_url() {
     check_ajax_referer( 'lgp_ignore_url', 'nonce' );
 
     if ( ! current_user_can( 'manage_options' ) ) {
-        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkguard' ) ], 403 );
+        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkhawk' ) ], 403 );
     }
 
     $url     = isset( $_POST['url'] ) ? esc_url_raw( wp_unslash( $_POST['url'] ) ) : '';
     $link_id = isset( $_POST['link_id'] ) ? absint( $_POST['link_id'] ) : 0;
 
     if ( empty( $url ) ) {
-        wp_send_json_error( [ 'message' => __( 'Invalid URL.', 'linkguard' ) ] );
+        wp_send_json_error( [ 'message' => __( 'Invalid URL.', 'linkhawk' ) ] );
     }
 
     lgp_ignore_url( $url );
@@ -174,13 +174,13 @@ function lgp_ajax_unignore_url() {
     check_ajax_referer( 'lgp_ignore_url', 'nonce' );
 
     if ( ! current_user_can( 'manage_options' ) ) {
-        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkguard' ) ], 403 );
+        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkhawk' ) ], 403 );
     }
 
     $id = isset( $_POST['id'] ) ? absint( $_POST['id'] ) : 0;
 
     if ( ! $id ) {
-        wp_send_json_error( [ 'message' => __( 'Invalid ID.', 'linkguard' ) ] );
+        wp_send_json_error( [ 'message' => __( 'Invalid ID.', 'linkhawk' ) ] );
     }
 
     lgp_unignore_url( $id );
@@ -194,23 +194,23 @@ function lgp_ajax_add_redirect() {
     check_ajax_referer( 'lgp_add_redirect', 'nonce' );
 
     if ( ! current_user_can( 'manage_options' ) ) {
-        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkguard' ) ], 403 );
+        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkhawk' ) ], 403 );
     }
 
     $source = isset( $_POST['source'] ) ? esc_url_raw( wp_unslash( $_POST['source'] ) ) : '';
     $target = isset( $_POST['target'] ) ? esc_url_raw( wp_unslash( $_POST['target'] ) ) : '';
 
     if ( empty( $source ) || empty( $target ) ) {
-        wp_send_json_error( [ 'message' => __( 'Both source and target URLs are required.', 'linkguard' ) ] );
+        wp_send_json_error( [ 'message' => __( 'Both source and target URLs are required.', 'linkhawk' ) ] );
     }
 
     $new_id = lgp_insert_redirect( $source, $target );
 
     if ( false === $new_id ) {
-        wp_send_json_error( [ 'message' => __( 'A redirect for this source URL already exists.', 'linkguard' ) ] );
+        wp_send_json_error( [ 'message' => __( 'A redirect for this source URL already exists.', 'linkhawk' ) ] );
     }
 
-    wp_send_json_success( [ 'id' => $new_id, 'message' => __( 'Redirect added.', 'linkguard' ) ] );
+    wp_send_json_success( [ 'id' => $new_id, 'message' => __( 'Redirect added.', 'linkhawk' ) ] );
 }
 
 // ── Delete redirect ───────────────────────────────────────────────────────────
@@ -220,13 +220,13 @@ function lgp_ajax_delete_redirect() {
     check_ajax_referer( 'lgp_delete_redirect', 'nonce' );
 
     if ( ! current_user_can( 'manage_options' ) ) {
-        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkguard' ) ], 403 );
+        wp_send_json_error( [ 'message' => __( 'Permission denied.', 'linkhawk' ) ], 403 );
     }
 
     $id = isset( $_POST['id'] ) ? absint( $_POST['id'] ) : 0;
 
     if ( ! $id ) {
-        wp_send_json_error( [ 'message' => __( 'Invalid ID.', 'linkguard' ) ] );
+        wp_send_json_error( [ 'message' => __( 'Invalid ID.', 'linkhawk' ) ] );
     }
 
     lgp_delete_redirect( $id );
@@ -299,15 +299,15 @@ function lgp_ajax_get_page() {
 function lgp_send_notification_email( array $result ) {
     $to      = get_option( 'lgp_notify_email', get_option( 'admin_email' ) );
     $subject = sprintf(
-        __( '[%s] LinkHawk: %d broken link(s) found', 'linkguard' ),
+        __( '[%s] LinkHawk: %d broken link(s) found', 'linkhawk' ),
         get_bloginfo( 'name' ),
         $result['broken']
     );
 
-    $message  = sprintf( __( 'LinkHawk completed a scan of %s.', 'linkguard' ), get_bloginfo( 'name' ) ) . "\n\n";
-    $message .= sprintf( __( 'Posts/pages scanned: %d', 'linkguard' ), $result['scanned'] ) . "\n";
-    $message .= sprintf( __( 'Broken links found: %d', 'linkguard' ), $result['broken'] ) . "\n\n";
-    $message .= __( 'View broken links:', 'linkguard' ) . "\n" . admin_url( 'admin.php?page=linkguard' ) . "\n";
+    $message  = sprintf( __( 'LinkHawk completed a scan of %s.', 'linkhawk' ), get_bloginfo( 'name' ) ) . "\n\n";
+    $message .= sprintf( __( 'Posts/pages scanned: %d', 'linkhawk' ), $result['scanned'] ) . "\n";
+    $message .= sprintf( __( 'Broken links found: %d', 'linkhawk' ), $result['broken'] ) . "\n\n";
+    $message .= __( 'View broken links:', 'linkhawk' ) . "\n" . admin_url( 'admin.php?page=linkhawk' ) . "\n";
 
     wp_mail( $to, $subject, $message );
 }
@@ -329,7 +329,7 @@ function lgp_render_links_table_html() {
  */
 function lgp_output_links_table( $links, $total, $current_page, $per_page ) {
     if ( empty( $links ) ) {
-        echo '<p class="lgp-no-results">' . esc_html__( 'No broken links found. Your site looks healthy!', 'linkguard' ) . '</p>';
+        echo '<p class="lgp-no-results">' . esc_html__( 'No broken links found. Your site looks healthy!', 'linkhawk' ) . '</p>';
         return;
     }
 
@@ -338,13 +338,13 @@ function lgp_output_links_table( $links, $total, $current_page, $per_page ) {
     <div class="lgp-table-toolbar">
         <label class="lgp-select-all-wrap">
             <input type="checkbox" id="lgp-select-all" />
-            <?php esc_html_e( 'Select All', 'linkguard' ); ?>
+            <?php esc_html_e( 'Select All', 'linkhawk' ); ?>
         </label>
         <button id="lgp-bulk-dismiss" class="button">
-            <?php esc_html_e( 'Dismiss Selected', 'linkguard' ); ?>
+            <?php esc_html_e( 'Dismiss Selected', 'linkhawk' ); ?>
         </button>
         <span class="lgp-table-count">
-            <?php printf( esc_html__( '%d item(s) total', 'linkguard' ), (int) $total ); ?>
+            <?php printf( esc_html__( '%d item(s) total', 'linkhawk' ), (int) $total ); ?>
         </span>
     </div>
 
@@ -353,13 +353,13 @@ function lgp_output_links_table( $links, $total, $current_page, $per_page ) {
         <thead>
             <tr>
                 <th class="lgp-col-cb"></th>
-                <th><?php esc_html_e( 'Type', 'linkguard' ); ?></th>
-                <th><?php esc_html_e( 'Post / Page', 'linkguard' ); ?></th>
-                <th><?php esc_html_e( 'Broken URL', 'linkguard' ); ?></th>
-                <th><?php esc_html_e( 'Status', 'linkguard' ); ?></th>
-                <th><?php esc_html_e( 'Anchor / Alt', 'linkguard' ); ?></th>
-                <th><?php esc_html_e( 'Detected At', 'linkguard' ); ?></th>
-                <th><?php esc_html_e( 'Actions', 'linkguard' ); ?></th>
+                <th><?php esc_html_e( 'Type', 'linkhawk' ); ?></th>
+                <th><?php esc_html_e( 'Post / Page', 'linkhawk' ); ?></th>
+                <th><?php esc_html_e( 'Broken URL', 'linkhawk' ); ?></th>
+                <th><?php esc_html_e( 'Status', 'linkhawk' ); ?></th>
+                <th><?php esc_html_e( 'Anchor / Alt', 'linkhawk' ); ?></th>
+                <th><?php esc_html_e( 'Detected At', 'linkhawk' ); ?></th>
+                <th><?php esc_html_e( 'Actions', 'linkhawk' ); ?></th>
             </tr>
         </thead>
         <tbody>
@@ -386,7 +386,7 @@ function lgp_output_links_table( $links, $total, $current_page, $per_page ) {
                     <button class="button button-small button-primary lgp-add-redirect-btn"
                         data-source="<?php echo esc_attr( $link->broken_url ); ?>"
                         data-link-id="<?php echo esc_attr( $link->id ); ?>"
-                        title="<?php echo ( $link->link_type ?? 'link' ) === 'image' ? esc_attr__( 'Redirect broken image URL', 'linkguard' ) : esc_attr__( 'Add 301 redirect', 'linkguard' ); ?>"
+                        title="<?php echo ( $link->link_type ?? 'link' ) === 'image' ? esc_attr__( 'Redirect broken image URL', 'linkhawk' ) : esc_attr__( 'Add 301 redirect', 'linkhawk' ); ?>"
                     >
                         <span class="dashicons <?php echo ( $link->link_type ?? 'link' ) === 'image' ? 'dashicons-format-image' : 'dashicons-randomize'; ?>" style="font-size:12px;width:12px;height:12px;margin-top:4px;margin-right:2px;"></span>
                         301
@@ -394,10 +394,10 @@ function lgp_output_links_table( $links, $total, $current_page, $per_page ) {
                     <button class="button button-small lgp-ignore-btn"
                         data-url="<?php echo esc_attr( $link->broken_url ); ?>"
                         data-id="<?php echo esc_attr( $link->id ); ?>"
-                    ><?php esc_html_e( 'Ignore', 'linkguard' ); ?></button>
+                    ><?php esc_html_e( 'Ignore', 'linkhawk' ); ?></button>
                     <button class="button button-small lgp-delete-link-btn"
                         data-id="<?php echo esc_attr( $link->id ); ?>"
-                    ><?php esc_html_e( 'Dismiss', 'linkguard' ); ?></button>
+                    ><?php esc_html_e( 'Dismiss', 'linkhawk' ); ?></button>
                 </td>
             </tr>
         <?php endforeach; ?>
@@ -408,13 +408,13 @@ function lgp_output_links_table( $links, $total, $current_page, $per_page ) {
     <?php if ( $total_pages > 1 ) : ?>
     <div class="lgp-pagination">
         <?php if ( $current_page > 1 ) : ?>
-            <button class="button lgp-page-btn" data-page="<?php echo esc_attr( $current_page - 1 ); ?>">&laquo; <?php esc_html_e( 'Prev', 'linkguard' ); ?></button>
+            <button class="button lgp-page-btn" data-page="<?php echo esc_attr( $current_page - 1 ); ?>">&laquo; <?php esc_html_e( 'Prev', 'linkhawk' ); ?></button>
         <?php endif; ?>
         <span class="lgp-page-info">
-            <?php printf( esc_html__( 'Page %1$d of %2$d', 'linkguard' ), (int) $current_page, (int) $total_pages ); ?>
+            <?php printf( esc_html__( 'Page %1$d of %2$d', 'linkhawk' ), (int) $current_page, (int) $total_pages ); ?>
         </span>
         <?php if ( $current_page < $total_pages ) : ?>
-            <button class="button lgp-page-btn" data-page="<?php echo esc_attr( $current_page + 1 ); ?>"><?php esc_html_e( 'Next', 'linkguard' ); ?> &raquo;</button>
+            <button class="button lgp-page-btn" data-page="<?php echo esc_attr( $current_page + 1 ); ?>"><?php esc_html_e( 'Next', 'linkhawk' ); ?> &raquo;</button>
         <?php endif; ?>
     </div>
     <?php endif; ?>

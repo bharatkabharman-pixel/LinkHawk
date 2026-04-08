@@ -9,7 +9,7 @@ function lgp_create_tables() {
 
     $charset_collate = $wpdb->get_charset_collate();
 
-    $sql_links = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}linkguard_links (
+    $sql_links = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}linkhawk_links (
         id          BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
         post_id     BIGINT(20) UNSIGNED NOT NULL DEFAULT 0,
         post_title  TEXT NOT NULL,
@@ -23,7 +23,7 @@ function lgp_create_tables() {
         KEY post_id (post_id)
     ) $charset_collate;";
 
-    $sql_redirects = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}linkguard_redirects (
+    $sql_redirects = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}linkhawk_redirects (
         id         BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
         source_url VARCHAR(2083) NOT NULL,
         target_url VARCHAR(2083) NOT NULL,
@@ -33,7 +33,7 @@ function lgp_create_tables() {
         KEY source_url (source_url(191))
     ) $charset_collate;";
 
-    $sql_ignored = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}linkguard_ignored (
+    $sql_ignored = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}linkhawk_ignored (
         id         BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
         url        TEXT NOT NULL,
         url_hash   CHAR(32) NOT NULL,
@@ -47,7 +47,7 @@ function lgp_create_tables() {
     dbDelta( $sql_redirects );
     dbDelta( $sql_ignored );
 
-    update_option( 'linkguard_db_version', LINKGUARD_VERSION );
+    update_option( 'linkhawk_db_version', LINKGUARD_VERSION );
 }
 
 /**
@@ -56,11 +56,11 @@ function lgp_create_tables() {
 function lgp_drop_tables() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-    $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}linkguard_links" );
+    $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}linkhawk_links" );
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-    $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}linkguard_redirects" );
+    $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}linkhawk_redirects" );
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-    $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}linkguard_ignored" );
+    $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}linkhawk_ignored" );
 }
 
 // ── Broken links ──────────────────────────────────────────────────────────────
@@ -72,7 +72,7 @@ function lgp_get_broken_links( $post_id = null ) {
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery
         return $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}linkguard_links WHERE post_id = %d ORDER BY detected_at DESC",
+                "SELECT * FROM {$wpdb->prefix}linkhawk_links WHERE post_id = %d ORDER BY detected_at DESC",
                 $post_id
             )
         );
@@ -80,7 +80,7 @@ function lgp_get_broken_links( $post_id = null ) {
 
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     return $wpdb->get_results(
-        "SELECT * FROM {$wpdb->prefix}linkguard_links ORDER BY detected_at DESC"
+        "SELECT * FROM {$wpdb->prefix}linkhawk_links ORDER BY detected_at DESC"
     );
 }
 
@@ -92,7 +92,7 @@ function lgp_get_broken_links_paged( $page = 1, $per_page = 20 ) {
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     return $wpdb->get_results(
         $wpdb->prepare(
-            "SELECT * FROM {$wpdb->prefix}linkguard_links ORDER BY detected_at DESC LIMIT %d OFFSET %d",
+            "SELECT * FROM {$wpdb->prefix}linkhawk_links ORDER BY detected_at DESC LIMIT %d OFFSET %d",
             (int) $per_page,
             $offset
         )
@@ -102,14 +102,14 @@ function lgp_get_broken_links_paged( $page = 1, $per_page = 20 ) {
 function lgp_count_broken_links() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-    return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}linkguard_links" );
+    return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}linkhawk_links" );
 }
 
 function lgp_count_by_status() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $rows = $wpdb->get_results(
-        "SELECT http_status, COUNT(*) AS cnt FROM {$wpdb->prefix}linkguard_links GROUP BY http_status"
+        "SELECT http_status, COUNT(*) AS cnt FROM {$wpdb->prefix}linkhawk_links GROUP BY http_status"
     );
 
     $map = [];
@@ -123,7 +123,7 @@ function lgp_count_by_type() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $rows = $wpdb->get_results(
-        "SELECT link_type, COUNT(*) AS cnt FROM {$wpdb->prefix}linkguard_links GROUP BY link_type"
+        "SELECT link_type, COUNT(*) AS cnt FROM {$wpdb->prefix}linkhawk_links GROUP BY link_type"
     );
 
     $map = [];
@@ -137,14 +137,14 @@ function lgp_count_affected_posts() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     return (int) $wpdb->get_var(
-        "SELECT COUNT(DISTINCT post_id) FROM {$wpdb->prefix}linkguard_links"
+        "SELECT COUNT(DISTINCT post_id) FROM {$wpdb->prefix}linkhawk_links"
     );
 }
 
 function lgp_upsert_link( array $data ) {
     global $wpdb;
 
-    $table = $wpdb->prefix . 'linkguard_links';
+    $table = $wpdb->prefix . 'linkhawk_links';
 
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $existing_id = $wpdb->get_var(
@@ -192,7 +192,7 @@ function lgp_delete_link( $id ) {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $wpdb->delete(
-        $wpdb->prefix . 'linkguard_links',
+        $wpdb->prefix . 'linkhawk_links',
         [ 'id' => (int) $id ],
         [ '%d' ]
     );
@@ -201,7 +201,7 @@ function lgp_delete_link( $id ) {
 function lgp_clear_links() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-    $wpdb->query( "TRUNCATE TABLE {$wpdb->prefix}linkguard_links" );
+    $wpdb->query( "TRUNCATE TABLE {$wpdb->prefix}linkhawk_links" );
 }
 
 // ── Ignore list ───────────────────────────────────────────────────────────────
@@ -215,7 +215,7 @@ function lgp_ignore_url( $url ) {
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $exists = $wpdb->get_var(
         $wpdb->prepare(
-            "SELECT id FROM {$wpdb->prefix}linkguard_ignored WHERE url_hash = %s LIMIT 1",
+            "SELECT id FROM {$wpdb->prefix}linkhawk_ignored WHERE url_hash = %s LIMIT 1",
             $hash
         )
     );
@@ -226,7 +226,7 @@ function lgp_ignore_url( $url ) {
 
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $wpdb->insert(
-        $wpdb->prefix . 'linkguard_ignored',
+        $wpdb->prefix . 'linkhawk_ignored',
         [
             'url'        => $url,
             'url_hash'   => $hash,
@@ -242,7 +242,7 @@ function lgp_unignore_url( $id ) {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $wpdb->delete(
-        $wpdb->prefix . 'linkguard_ignored',
+        $wpdb->prefix . 'linkhawk_ignored',
         [ 'id' => (int) $id ],
         [ '%d' ]
     );
@@ -252,7 +252,7 @@ function lgp_get_ignored_urls() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     return $wpdb->get_results(
-        "SELECT * FROM {$wpdb->prefix}linkguard_ignored ORDER BY ignored_at DESC"
+        "SELECT * FROM {$wpdb->prefix}linkhawk_ignored ORDER BY ignored_at DESC"
     );
 }
 
@@ -264,7 +264,7 @@ function lgp_get_ignored_urls() {
 function lgp_get_ignored_url_hashes() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-    $rows = $wpdb->get_results( "SELECT url_hash FROM {$wpdb->prefix}linkguard_ignored" );
+    $rows = $wpdb->get_results( "SELECT url_hash FROM {$wpdb->prefix}linkhawk_ignored" );
     return array_column( $rows, 'url_hash' );
 }
 
@@ -274,14 +274,14 @@ function lgp_get_redirects() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     return $wpdb->get_results(
-        "SELECT * FROM {$wpdb->prefix}linkguard_redirects ORDER BY created_at DESC"
+        "SELECT * FROM {$wpdb->prefix}linkhawk_redirects ORDER BY created_at DESC"
     );
 }
 
 function lgp_count_redirects() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-    return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}linkguard_redirects" );
+    return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}linkhawk_redirects" );
 }
 
 function lgp_get_redirects_paged( $page = 1, $per_page = 20, $orderby = 'created_at', $order = 'DESC', $search = '' ) {
@@ -298,7 +298,7 @@ function lgp_get_redirects_paged( $page = 1, $per_page = 20, $orderby = 'created
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery
         return $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}linkguard_redirects
+                "SELECT * FROM {$wpdb->prefix}linkhawk_redirects
                   WHERE source_url LIKE %s OR target_url LIKE %s
                   ORDER BY {$orderby} {$order}
                   LIMIT %d OFFSET %d",
@@ -310,7 +310,7 @@ function lgp_get_redirects_paged( $page = 1, $per_page = 20, $orderby = 'created
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     return $wpdb->get_results(
         $wpdb->prepare(
-            "SELECT * FROM {$wpdb->prefix}linkguard_redirects ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d",
+            "SELECT * FROM {$wpdb->prefix}linkhawk_redirects ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d",
             (int) $per_page,
             $offset
         )
@@ -323,7 +323,7 @@ function lgp_count_redirects_search( $search ) {
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     return (int) $wpdb->get_var(
         $wpdb->prepare(
-            "SELECT COUNT(*) FROM {$wpdb->prefix}linkguard_redirects WHERE source_url LIKE %s OR target_url LIKE %s",
+            "SELECT COUNT(*) FROM {$wpdb->prefix}linkhawk_redirects WHERE source_url LIKE %s OR target_url LIKE %s",
             $like, $like
         )
     );
@@ -337,7 +337,7 @@ function lgp_insert_redirect( $source, $target ) {
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $exists = $wpdb->get_var(
         $wpdb->prepare(
-            "SELECT id FROM {$wpdb->prefix}linkguard_redirects WHERE source_url = %s LIMIT 1",
+            "SELECT id FROM {$wpdb->prefix}linkhawk_redirects WHERE source_url = %s LIMIT 1",
             $source
         )
     );
@@ -348,7 +348,7 @@ function lgp_insert_redirect( $source, $target ) {
 
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $wpdb->insert(
-        $wpdb->prefix . 'linkguard_redirects',
+        $wpdb->prefix . 'linkhawk_redirects',
         [
             'source_url' => $source,
             'target_url' => esc_url_raw( $target ),
@@ -365,7 +365,7 @@ function lgp_delete_redirect( $id ) {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $wpdb->delete(
-        $wpdb->prefix . 'linkguard_redirects',
+        $wpdb->prefix . 'linkhawk_redirects',
         [ 'id' => (int) $id ],
         [ '%d' ]
     );
@@ -376,7 +376,7 @@ function lgp_increment_redirect_hits( $id ) {
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $wpdb->query(
         $wpdb->prepare(
-            "UPDATE {$wpdb->prefix}linkguard_redirects SET hit_count = hit_count + 1 WHERE id = %d",
+            "UPDATE {$wpdb->prefix}linkhawk_redirects SET hit_count = hit_count + 1 WHERE id = %d",
             (int) $id
         )
     );

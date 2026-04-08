@@ -8,20 +8,20 @@ if ( isset( $_POST['lgp_add_redirect_submit'] ) ) {
     check_admin_referer( 'lgp_add_redirect_form' );
 
     if ( ! current_user_can( 'manage_options' ) ) {
-        wp_die( esc_html__( 'Permission denied.', 'linkguard' ) );
+        wp_die( esc_html__( 'Permission denied.', 'linkhawk' ) );
     }
 
     $source = isset( $_POST['source_url'] ) ? esc_url_raw( wp_unslash( $_POST['source_url'] ) ) : '';
     $target = isset( $_POST['target_url'] ) ? esc_url_raw( wp_unslash( $_POST['target_url'] ) ) : '';
 
     if ( empty( $source ) || empty( $target ) ) {
-        $form_error = __( 'Both source and target URLs are required.', 'linkguard' );
+        $form_error = __( 'Both source and target URLs are required.', 'linkhawk' );
     } else {
         $new_id = lgp_insert_redirect( $source, $target );
         if ( false === $new_id ) {
-            $form_error = __( 'A redirect for that source URL already exists.', 'linkguard' );
+            $form_error = __( 'A redirect for that source URL already exists.', 'linkhawk' );
         } else {
-            $form_success = __( 'Redirect added successfully.', 'linkguard' );
+            $form_success = __( 'Redirect added successfully.', 'linkhawk' );
         }
     }
 }
@@ -51,7 +51,7 @@ function lgp_redir_sort_link( $col, $label, $current_col, $current_order, $searc
         $arrow = $current_order === 'ASC' ? ' ▲' : ' ▼';
     }
     $url = add_query_arg( [
-        'page'         => 'linkguard-redirects',
+        'page'         => 'linkhawk-redirects',
         'orderby'      => $col,
         'order'        => $new_order,
         'redir_search' => urlencode( $search ),
@@ -68,11 +68,11 @@ function lgp_redir_sort_link( $col, $label, $current_col, $current_order, $searc
     <div class="lgp-page-header">
         <h1 class="lgp-page-title">
             <span class="dashicons dashicons-randomize"></span>
-            <?php esc_html_e( 'LinkHawk — 301 Redirects', 'linkguard' ); ?>
+            <?php esc_html_e( 'LinkHawk — 301 Redirects', 'linkhawk' ); ?>
         </h1>
         <div class="lgp-header-actions">
             <span class="lgp-redir-total-badge">
-                <?php printf( esc_html__( '%d active redirect(s)', 'linkguard' ), lgp_count_redirects() ); ?>
+                <?php printf( esc_html__( '%d active redirect(s)', 'linkhawk' ), lgp_count_redirects() ); ?>
             </span>
         </div>
     </div>
@@ -81,7 +81,7 @@ function lgp_redir_sort_link( $col, $label, $current_col, $current_order, $searc
     <div class="lgp-card lgp-add-redirect-card">
         <h2>
             <span class="dashicons dashicons-plus-alt" style="color:var(--wp-admin-theme-color,#2271b1);margin-right:4px;"></span>
-            <?php esc_html_e( 'Add New Redirect', 'linkguard' ); ?>
+            <?php esc_html_e( 'Add New Redirect', 'linkhawk' ); ?>
         </h2>
 
         <?php if ( $form_error ) : ?>
@@ -97,12 +97,12 @@ function lgp_redir_sort_link( $col, $label, $current_col, $current_order, $searc
                 <div class="lgp-redirect-form-field">
                     <label for="source_url">
                         <span class="lgp-field-icon dashicons dashicons-warning"></span>
-                        <?php esc_html_e( 'Broken / Old URL', 'linkguard' ); ?>
+                        <?php esc_html_e( 'Broken / Old URL', 'linkhawk' ); ?>
                     </label>
                     <input type="url" name="source_url" id="source_url" class="large-text"
                         value="<?php echo esc_attr( $prefill_source ); ?>"
                         placeholder="https://example.com/old-page/" required />
-                    <p class="description"><?php esc_html_e( 'The URL you want to redirect away from.', 'linkguard' ); ?></p>
+                    <p class="description"><?php esc_html_e( 'The URL you want to redirect away from.', 'linkhawk' ); ?></p>
                 </div>
                 <div class="lgp-redirect-arrow">
                     <span class="dashicons dashicons-arrow-right-alt"></span>
@@ -110,16 +110,16 @@ function lgp_redir_sort_link( $col, $label, $current_col, $current_order, $searc
                 <div class="lgp-redirect-form-field">
                     <label for="target_url">
                         <span class="lgp-field-icon dashicons dashicons-yes-alt"></span>
-                        <?php esc_html_e( 'Redirect To (Target)', 'linkguard' ); ?>
+                        <?php esc_html_e( 'Redirect To (Target)', 'linkhawk' ); ?>
                     </label>
                     <input type="url" name="target_url" id="target_url" class="large-text"
                         placeholder="https://example.com/new-page/" required />
-                    <p class="description"><?php esc_html_e( 'Visitors will be 301-redirected here.', 'linkguard' ); ?></p>
+                    <p class="description"><?php esc_html_e( 'Visitors will be 301-redirected here.', 'linkhawk' ); ?></p>
                 </div>
                 <div class="lgp-redirect-submit">
                     <button type="submit" name="lgp_add_redirect_submit" class="button button-primary button-large">
                         <span class="dashicons dashicons-randomize" style="margin-top:3px;margin-right:4px;"></span>
-                        <?php esc_html_e( 'Add Redirect', 'linkguard' ); ?>
+                        <?php esc_html_e( 'Add Redirect', 'linkhawk' ); ?>
                     </button>
                 </div>
             </div>
@@ -130,7 +130,7 @@ function lgp_redir_sort_link( $col, $label, $current_col, $current_order, $searc
     <div class="lgp-card">
         <div class="lgp-redirects-header">
             <h2 style="margin:0;border:none;padding:0;">
-                <?php esc_html_e( 'Active Redirects', 'linkguard' ); ?>
+                <?php esc_html_e( 'Active Redirects', 'linkhawk' ); ?>
                 <?php if ( $total > 0 ) : ?>
                     <span class="lgp-count-bubble"><?php echo esc_html( $total ); ?></span>
                 <?php endif; ?>
@@ -138,19 +138,19 @@ function lgp_redir_sort_link( $col, $label, $current_col, $current_order, $searc
 
             <!-- Search -->
             <form method="get" action="" class="lgp-search-form">
-                <input type="hidden" name="page" value="linkguard-redirects" />
+                <input type="hidden" name="page" value="linkhawk-redirects" />
                 <input type="hidden" name="orderby" value="<?php echo esc_attr( $orderby ); ?>" />
                 <input type="hidden" name="order" value="<?php echo esc_attr( $order ); ?>" />
                 <div class="lgp-search-wrap">
                     <span class="dashicons dashicons-search lgp-search-icon"></span>
                     <input type="search" name="redir_search" id="lgp-redir-search"
                         value="<?php echo esc_attr( $search ); ?>"
-                        placeholder="<?php esc_attr_e( 'Search redirects…', 'linkguard' ); ?>"
+                        placeholder="<?php esc_attr_e( 'Search redirects…', 'linkhawk' ); ?>"
                         class="lgp-search-input"
                     />
-                    <button type="submit" class="button"><?php esc_html_e( 'Search', 'linkguard' ); ?></button>
+                    <button type="submit" class="button"><?php esc_html_e( 'Search', 'linkhawk' ); ?></button>
                     <?php if ( $search ) : ?>
-                        <a href="<?php echo esc_url( admin_url( 'admin.php?page=linkguard-redirects' ) ); ?>" class="button">&times; <?php esc_html_e( 'Clear', 'linkguard' ); ?></a>
+                        <a href="<?php echo esc_url( admin_url( 'admin.php?page=linkhawk-redirects' ) ); ?>" class="button">&times; <?php esc_html_e( 'Clear', 'linkhawk' ); ?></a>
                     <?php endif; ?>
                 </div>
             </form>
@@ -158,10 +158,10 @@ function lgp_redir_sort_link( $col, $label, $current_col, $current_order, $searc
 
         <?php if ( $search && $total === 0 ) : ?>
             <p class="lgp-no-results">
-                <?php printf( esc_html__( 'No redirects found for "%s".', 'linkguard' ), esc_html( $search ) ); ?>
+                <?php printf( esc_html__( 'No redirects found for "%s".', 'linkhawk' ), esc_html( $search ) ); ?>
             </p>
         <?php elseif ( empty( $redirects ) && ! $search ) : ?>
-            <p class="lgp-no-results"><?php esc_html_e( 'No redirects configured yet. Add one above!', 'linkguard' ); ?></p>
+            <p class="lgp-no-results"><?php esc_html_e( 'No redirects configured yet. Add one above!', 'linkhawk' ); ?></p>
         <?php else : ?>
 
             <div class="lgp-table-wrap">
@@ -169,18 +169,18 @@ function lgp_redir_sort_link( $col, $label, $current_col, $current_order, $searc
                 <thead>
                     <tr>
                         <th class="lgp-th-source">
-                            <?php echo lgp_redir_sort_link( 'source_url', __( 'Source URL', 'linkguard' ), $orderby, $order, $search, $page ); // phpcs:ignore ?>
+                            <?php echo lgp_redir_sort_link( 'source_url', __( 'Source URL', 'linkhawk' ), $orderby, $order, $search, $page ); // phpcs:ignore ?>
                         </th>
                         <th class="lgp-th-target">
-                            <?php echo lgp_redir_sort_link( 'target_url', __( 'Target URL', 'linkguard' ), $orderby, $order, $search, $page ); // phpcs:ignore ?>
+                            <?php echo lgp_redir_sort_link( 'target_url', __( 'Target URL', 'linkhawk' ), $orderby, $order, $search, $page ); // phpcs:ignore ?>
                         </th>
                         <th class="lgp-th-hits">
-                            <?php echo lgp_redir_sort_link( 'hit_count', __( 'Hits', 'linkguard' ), $orderby, $order, $search, $page ); // phpcs:ignore ?>
+                            <?php echo lgp_redir_sort_link( 'hit_count', __( 'Hits', 'linkhawk' ), $orderby, $order, $search, $page ); // phpcs:ignore ?>
                         </th>
                         <th class="lgp-th-date">
-                            <?php echo lgp_redir_sort_link( 'created_at', __( 'Created', 'linkguard' ), $orderby, $order, $search, $page ); // phpcs:ignore ?>
+                            <?php echo lgp_redir_sort_link( 'created_at', __( 'Created', 'linkhawk' ), $orderby, $order, $search, $page ); // phpcs:ignore ?>
                         </th>
-                        <th class="lgp-th-action"><?php esc_html_e( 'Action', 'linkguard' ); ?></th>
+                        <th class="lgp-th-action"><?php esc_html_e( 'Action', 'linkhawk' ); ?></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -211,7 +211,7 @@ function lgp_redir_sort_link( $col, $label, $current_col, $current_order, $searc
                                 data-nonce="<?php echo esc_attr( $delete_nonce ); ?>"
                             >
                                 <span class="dashicons dashicons-trash" style="font-size:13px;width:13px;height:13px;margin-top:3px;"></span>
-                                <?php esc_html_e( 'Delete', 'linkguard' ); ?>
+                                <?php esc_html_e( 'Delete', 'linkhawk' ); ?>
                             </button>
                         </td>
                     </tr>
@@ -225,24 +225,24 @@ function lgp_redir_sort_link( $col, $label, $current_col, $current_order, $searc
             <div class="lgp-pagination lgp-redir-pagination">
                 <?php
                 $base_args = [
-                    'page'         => 'linkguard-redirects',
+                    'page'         => 'linkhawk-redirects',
                     'orderby'      => $orderby,
                     'order'        => $order,
                     'redir_search' => $search,
                 ];
                 ?>
                 <?php if ( $page > 1 ) : ?>
-                    <a href="<?php echo esc_url( add_query_arg( array_merge( $base_args, [ 'redir_page' => $page - 1 ] ), admin_url( 'admin.php' ) ) ); ?>" class="button">&laquo; <?php esc_html_e( 'Prev', 'linkguard' ); ?></a>
+                    <a href="<?php echo esc_url( add_query_arg( array_merge( $base_args, [ 'redir_page' => $page - 1 ] ), admin_url( 'admin.php' ) ) ); ?>" class="button">&laquo; <?php esc_html_e( 'Prev', 'linkhawk' ); ?></a>
                 <?php endif; ?>
 
                 <span class="lgp-page-info">
-                    <?php printf( esc_html__( 'Page %1$d of %2$d', 'linkguard' ), $page, $pages ); ?>
+                    <?php printf( esc_html__( 'Page %1$d of %2$d', 'linkhawk' ), $page, $pages ); ?>
                     &nbsp;·&nbsp;
-                    <?php printf( esc_html__( '%d total', 'linkguard' ), $total ); ?>
+                    <?php printf( esc_html__( '%d total', 'linkhawk' ), $total ); ?>
                 </span>
 
                 <?php if ( $page < $pages ) : ?>
-                    <a href="<?php echo esc_url( add_query_arg( array_merge( $base_args, [ 'redir_page' => $page + 1 ] ), admin_url( 'admin.php' ) ) ); ?>" class="button"><?php esc_html_e( 'Next', 'linkguard' ); ?> &raquo;</a>
+                    <a href="<?php echo esc_url( add_query_arg( array_merge( $base_args, [ 'redir_page' => $page + 1 ] ), admin_url( 'admin.php' ) ) ); ?>" class="button"><?php esc_html_e( 'Next', 'linkhawk' ); ?> &raquo;</a>
                 <?php endif; ?>
             </div>
             <?php endif; ?>

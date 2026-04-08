@@ -12,8 +12,8 @@ lgp_drop_tables();
 
 // Remove all plugin options.
 $options = [
-    'linkguard_db_version',
-    'linkguard_last_scan',
+    'linkhawk_db_version',
+    'linkhawk_last_scan',
     'lgp_timeout',
     'lgp_per_page',
     'lgp_email_notify',
