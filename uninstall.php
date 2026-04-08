@@ -12,13 +12,14 @@ lgp_drop_tables();
 
 // Remove all plugin options.
 $options = [
-    'linkguard_db_version',
-    'linkguard_last_scan',
+    'linkhawk_db_version',
+    'linkhawk_last_scan',
     'lgp_timeout',
     'lgp_per_page',
     'lgp_email_notify',
     'lgp_notify_email',
     'lgp_excluded_domains',
+    'lgp_scan_image_links',
 ];
 
 foreach ( $options as $option ) {
