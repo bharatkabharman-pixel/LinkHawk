@@ -239,7 +239,7 @@ This plugin is licensed under the [GNU General Public License v2.0](https://www.
 
 **Kamlesh Kumar Jangir**
 - Website: [trsoftech.com](https://trsoftech.com)
-- GitHub: [@kamleshkumarjangir](https://github.com/kamleshkumarjangir)
+- GitHub: [@kamleshkumarjangir](https://github.com/bharatkabharman-pixel)
 
 ---
 
