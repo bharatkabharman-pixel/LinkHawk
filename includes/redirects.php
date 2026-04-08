@@ -33,7 +33,7 @@ function lgp_handle_redirects() {
     $redirect = $wpdb->get_row(
         $wpdb->prepare(
             "SELECT id, target_url
-               FROM {$wpdb->prefix}linkguard_redirects
+               FROM {$wpdb->prefix}linkhawk_redirects
               WHERE source_url = %s
                  OR source_url = %s
                  OR source_url = %s

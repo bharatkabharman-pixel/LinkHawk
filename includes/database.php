@@ -9,7 +9,7 @@ function lgp_create_tables() {
 
     $charset_collate = $wpdb->get_charset_collate();
 
-    $sql_links = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}linkguard_links (
+    $sql_links = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}linkhawk_links (
         id          BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
         post_id     BIGINT(20) UNSIGNED NOT NULL DEFAULT 0,
         post_title  TEXT NOT NULL,
@@ -17,12 +17,13 @@ function lgp_create_tables() {
         broken_url  TEXT NOT NULL,
         anchor_text TEXT NOT NULL,
         http_status VARCHAR(20) NOT NULL DEFAULT '',
+        link_type   VARCHAR(10) NOT NULL DEFAULT 'link',
         detected_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
         KEY post_id (post_id)
     ) $charset_collate;";
 
-    $sql_redirects = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}linkguard_redirects (
+    $sql_redirects = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}linkhawk_redirects (
         id         BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
         source_url VARCHAR(2083) NOT NULL,
         target_url VARCHAR(2083) NOT NULL,
@@ -32,11 +33,21 @@ function lgp_create_tables() {
         KEY source_url (source_url(191))
     ) $charset_collate;";
 
+    $sql_ignored = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}linkhawk_ignored (
+        id         BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+        url        TEXT NOT NULL,
+        url_hash   CHAR(32) NOT NULL,
+        ignored_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY url_hash (url_hash)
+    ) $charset_collate;";
+
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';
     dbDelta( $sql_links );
     dbDelta( $sql_redirects );
+    dbDelta( $sql_ignored );
 
-    update_option( 'linkguard_db_version', LINKGUARD_VERSION );
+    update_option( 'linkhawk_db_version', LINKGUARD_VERSION );
 }
 
 /**
@@ -45,19 +56,15 @@ function lgp_create_tables() {
 function lgp_drop_tables() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-    $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}linkguard_links" );
+    $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}linkhawk_links" );
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-    $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}linkguard_redirects" );
+    $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}linkhawk_redirects" );
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}linkhawk_ignored" );
 }
 
 // ── Broken links ──────────────────────────────────────────────────────────────
 
-/**
- * Return broken links with optional pagination.
- *
- * @param int|null $post_id  Filter by post.
- * @return array
- */
 function lgp_get_broken_links( $post_id = null ) {
     global $wpdb;
 
@@ -65,7 +72,7 @@ function lgp_get_broken_links( $post_id = null ) {
         // phpcs:ignore WordPress.DB.DirectDatabaseQuery
         return $wpdb->get_results(
             $wpdb->prepare(
-                "SELECT * FROM {$wpdb->prefix}linkguard_links WHERE post_id = %d ORDER BY detected_at DESC",
+                "SELECT * FROM {$wpdb->prefix}linkhawk_links WHERE post_id = %d ORDER BY detected_at DESC",
                 $post_id
             )
         );
@@ -73,17 +80,10 @@ function lgp_get_broken_links( $post_id = null ) {
 
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     return $wpdb->get_results(
-        "SELECT * FROM {$wpdb->prefix}linkguard_links ORDER BY detected_at DESC"
+        "SELECT * FROM {$wpdb->prefix}linkhawk_links ORDER BY detected_at DESC"
     );
 }
 
-/**
- * Return a single page of broken links.
- *
- * @param int $page     1-based page number.
- * @param int $per_page Rows per page.
- * @return array
- */
 function lgp_get_broken_links_paged( $page = 1, $per_page = 20 ) {
     global $wpdb;
 
@@ -92,34 +92,24 @@ function lgp_get_broken_links_paged( $page = 1, $per_page = 20 ) {
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     return $wpdb->get_results(
         $wpdb->prepare(
-            "SELECT * FROM {$wpdb->prefix}linkguard_links ORDER BY detected_at DESC LIMIT %d OFFSET %d",
+            "SELECT * FROM {$wpdb->prefix}linkhawk_links ORDER BY detected_at DESC LIMIT %d OFFSET %d",
             (int) $per_page,
             $offset
         )
     );
 }
 
-/**
- * Count total broken links.
- *
- * @return int
- */
 function lgp_count_broken_links() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-    return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}linkguard_links" );
+    return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}linkhawk_links" );
 }
 
-/**
- * Count broken links grouped by http_status.
- *
- * @return array  e.g. [ '404' => 5, 'timeout' => 2 ]
- */
 function lgp_count_by_status() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $rows = $wpdb->get_results(
-        "SELECT http_status, COUNT(*) AS cnt FROM {$wpdb->prefix}linkguard_links GROUP BY http_status"
+        "SELECT http_status, COUNT(*) AS cnt FROM {$wpdb->prefix}linkhawk_links GROUP BY http_status"
     );
 
     $map = [];
@@ -129,28 +119,32 @@ function lgp_count_by_status() {
     return $map;
 }
 
-/**
- * Count distinct posts that have at least one broken link.
- *
- * @return int
- */
+function lgp_count_by_type() {
+    global $wpdb;
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    $rows = $wpdb->get_results(
+        "SELECT link_type, COUNT(*) AS cnt FROM {$wpdb->prefix}linkhawk_links GROUP BY link_type"
+    );
+
+    $map = [];
+    foreach ( $rows as $row ) {
+        $map[ $row->link_type ] = (int) $row->cnt;
+    }
+    return $map;
+}
+
 function lgp_count_affected_posts() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     return (int) $wpdb->get_var(
-        "SELECT COUNT(DISTINCT post_id) FROM {$wpdb->prefix}linkguard_links"
+        "SELECT COUNT(DISTINCT post_id) FROM {$wpdb->prefix}linkhawk_links"
     );
 }
 
-/**
- * Insert or update a broken link record.
- *
- * @param array $data
- */
 function lgp_upsert_link( array $data ) {
     global $wpdb;
 
-    $table = $wpdb->prefix . 'linkguard_links';
+    $table = $wpdb->prefix . 'linkhawk_links';
 
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $existing_id = $wpdb->get_var(
@@ -168,10 +162,11 @@ function lgp_upsert_link( array $data ) {
             [
                 'http_status' => sanitize_text_field( $data['http_status'] ),
                 'anchor_text' => sanitize_text_field( $data['anchor_text'] ),
+                'link_type'   => sanitize_text_field( $data['link_type'] ?? 'link' ),
                 'detected_at' => current_time( 'mysql' ),
             ],
             [ 'id' => (int) $existing_id ],
-            [ '%s', '%s', '%s' ],
+            [ '%s', '%s', '%s', '%s' ],
             [ '%d' ]
         );
     } else {
@@ -185,59 +180,155 @@ function lgp_upsert_link( array $data ) {
                 'broken_url'  => esc_url_raw( $data['broken_url'] ),
                 'anchor_text' => sanitize_text_field( $data['anchor_text'] ),
                 'http_status' => sanitize_text_field( $data['http_status'] ),
+                'link_type'   => sanitize_text_field( $data['link_type'] ?? 'link' ),
                 'detected_at' => current_time( 'mysql' ),
             ],
-            [ '%d', '%s', '%s', '%s', '%s', '%s', '%s' ]
+            [ '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s' ]
         );
     }
 }
 
-/**
- * Delete a single broken-link record.
- *
- * @param int $id
- */
 function lgp_delete_link( $id ) {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $wpdb->delete(
-        $wpdb->prefix . 'linkguard_links',
+        $wpdb->prefix . 'linkhawk_links',
         [ 'id' => (int) $id ],
         [ '%d' ]
     );
 }
 
-/**
- * Truncate the broken links table before a fresh scan.
- */
 function lgp_clear_links() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
-    $wpdb->query( "TRUNCATE TABLE {$wpdb->prefix}linkguard_links" );
+    $wpdb->query( "TRUNCATE TABLE {$wpdb->prefix}linkhawk_links" );
 }
 
-// ── Redirects ─────────────────────────────────────────────────────────────────
+// ── Ignore list ───────────────────────────────────────────────────────────────
 
-/**
- * Return all redirect rules.
- *
- * @return array
- */
-function lgp_get_redirects() {
+function lgp_ignore_url( $url ) {
+    global $wpdb;
+
+    $url  = esc_url_raw( $url );
+    $hash = md5( $url );
+
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    $exists = $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT id FROM {$wpdb->prefix}linkhawk_ignored WHERE url_hash = %s LIMIT 1",
+            $hash
+        )
+    );
+
+    if ( $exists ) {
+        return false;
+    }
+
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    $wpdb->insert(
+        $wpdb->prefix . 'linkhawk_ignored',
+        [
+            'url'        => $url,
+            'url_hash'   => $hash,
+            'ignored_at' => current_time( 'mysql' ),
+        ],
+        [ '%s', '%s', '%s' ]
+    );
+
+    return (bool) $wpdb->insert_id;
+}
+
+function lgp_unignore_url( $id ) {
+    global $wpdb;
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    $wpdb->delete(
+        $wpdb->prefix . 'linkhawk_ignored',
+        [ 'id' => (int) $id ],
+        [ '%d' ]
+    );
+}
+
+function lgp_get_ignored_urls() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     return $wpdb->get_results(
-        "SELECT * FROM {$wpdb->prefix}linkguard_redirects ORDER BY created_at DESC"
+        "SELECT * FROM {$wpdb->prefix}linkhawk_ignored ORDER BY ignored_at DESC"
     );
 }
 
 /**
- * Insert a new redirect rule.
+ * Return all ignored URL md5 hashes for fast lookup during scan.
  *
- * @param string $source
- * @param string $target
- * @return int|false
+ * @return string[]
  */
+function lgp_get_ignored_url_hashes() {
+    global $wpdb;
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    $rows = $wpdb->get_results( "SELECT url_hash FROM {$wpdb->prefix}linkhawk_ignored" );
+    return array_column( $rows, 'url_hash' );
+}
+
+// ── Redirects ─────────────────────────────────────────────────────────────────
+
+function lgp_get_redirects() {
+    global $wpdb;
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    return $wpdb->get_results(
+        "SELECT * FROM {$wpdb->prefix}linkhawk_redirects ORDER BY created_at DESC"
+    );
+}
+
+function lgp_count_redirects() {
+    global $wpdb;
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}linkhawk_redirects" );
+}
+
+function lgp_get_redirects_paged( $page = 1, $per_page = 20, $orderby = 'created_at', $order = 'DESC', $search = '' ) {
+    global $wpdb;
+
+    $allowed_cols  = [ 'source_url', 'target_url', 'hit_count', 'created_at' ];
+    $allowed_order = [ 'ASC', 'DESC' ];
+    $orderby = in_array( $orderby, $allowed_cols, true )  ? $orderby : 'created_at';
+    $order   = in_array( strtoupper( $order ), $allowed_order, true ) ? strtoupper( $order ) : 'DESC';
+    $offset  = ( max( 1, (int) $page ) - 1 ) * (int) $per_page;
+
+    if ( $search ) {
+        $like = '%' . $wpdb->esc_like( $search ) . '%';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        return $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}linkhawk_redirects
+                  WHERE source_url LIKE %s OR target_url LIKE %s
+                  ORDER BY {$orderby} {$order}
+                  LIMIT %d OFFSET %d",
+                $like, $like, (int) $per_page, $offset
+            )
+        );
+    }
+
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    return $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}linkhawk_redirects ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d",
+            (int) $per_page,
+            $offset
+        )
+    );
+}
+
+function lgp_count_redirects_search( $search ) {
+    global $wpdb;
+    $like = '%' . $wpdb->esc_like( $search ) . '%';
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    return (int) $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}linkhawk_redirects WHERE source_url LIKE %s OR target_url LIKE %s",
+            $like, $like
+        )
+    );
+}
+
 function lgp_insert_redirect( $source, $target ) {
     global $wpdb;
 
@@ -246,7 +337,7 @@ function lgp_insert_redirect( $source, $target ) {
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $exists = $wpdb->get_var(
         $wpdb->prepare(
-            "SELECT id FROM {$wpdb->prefix}linkguard_redirects WHERE source_url = %s LIMIT 1",
+            "SELECT id FROM {$wpdb->prefix}linkhawk_redirects WHERE source_url = %s LIMIT 1",
             $source
         )
     );
@@ -257,7 +348,7 @@ function lgp_insert_redirect( $source, $target ) {
 
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $wpdb->insert(
-        $wpdb->prefix . 'linkguard_redirects',
+        $wpdb->prefix . 'linkhawk_redirects',
         [
             'source_url' => $source,
             'target_url' => esc_url_raw( $target ),
@@ -270,32 +361,22 @@ function lgp_insert_redirect( $source, $target ) {
     return $wpdb->insert_id ? (int) $wpdb->insert_id : false;
 }
 
-/**
- * Delete a redirect rule.
- *
- * @param int $id
- */
 function lgp_delete_redirect( $id ) {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $wpdb->delete(
-        $wpdb->prefix . 'linkguard_redirects',
+        $wpdb->prefix . 'linkhawk_redirects',
         [ 'id' => (int) $id ],
         [ '%d' ]
     );
 }
 
-/**
- * Increment hit counter for a redirect.
- *
- * @param int $id
- */
 function lgp_increment_redirect_hits( $id ) {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $wpdb->query(
         $wpdb->prepare(
-            "UPDATE {$wpdb->prefix}linkguard_redirects SET hit_count = hit_count + 1 WHERE id = %d",
+            "UPDATE {$wpdb->prefix}linkhawk_redirects SET hit_count = hit_count + 1 WHERE id = %d",
             (int) $id
         )
     );
