@@ -1,4 +1,4 @@
-# LinkHawk — Broken Link Checker
+# LinkHawk — Broken Link Checker Wordpress Plugin
 
 ![WordPress](https://img.shields.io/badge/WordPress-6.0%2B-blue?logo=wordpress&logoColor=white)
 ![PHP](https://img.shields.io/badge/PHP-8.2%2B-777BB4?logo=php&logoColor=white)
