@@ -11,9 +11,8 @@ $current_page = max( 1, absint( $_GET['lgp_page'] ?? 1 ) );
 $links        = lgp_get_broken_links_paged( $current_page, $per_page );
 
 $count_404     = $by_status['404']     ?? 0;
-$count_timeout = $by_status['timeout'] ?? 0;
+$count_timeout = ( $by_status['timeout'] ?? 0 ) + ( $by_status['error'] ?? 0 );
 $count_images  = $by_type['image']     ?? 0;
-$count_links   = $by_type['link']      ?? 0;
 ?>
 <div class="wrap lgp-wrap">
 
@@ -37,52 +36,64 @@ $count_links   = $by_type['link']      ?? 0;
         </div>
     </div>
 
-    <!-- ── Stats Cards ── -->
+    <!-- ── Premium Stats Cards ── -->
     <div class="lgp-stats-bar">
 
         <div class="lgp-stat-card <?php echo $total > 0 ? 'lgp-stat-card--alert' : 'lgp-stat-card--ok'; ?>">
-            <span class="lgp-stat-icon dashicons <?php echo $total > 0 ? 'dashicons-warning' : 'dashicons-yes-alt'; ?>"></span>
-            <div>
+            <div class="lgp-stat-icon-wrap">
+                <span class="lgp-stat-icon dashicons <?php echo $total > 0 ? 'dashicons-warning' : 'dashicons-yes-alt'; ?>"></span>
+            </div>
+            <div class="lgp-stat-body">
                 <span class="lgp-stat-number" id="lgp-broken-count"><?php echo esc_html( $total ); ?></span>
                 <span class="lgp-stat-label"><?php esc_html_e( 'Total Broken', 'linkguard' ); ?></span>
             </div>
         </div>
 
         <div class="lgp-stat-card">
-            <span class="lgp-stat-icon dashicons dashicons-admin-page"></span>
-            <div>
+            <div class="lgp-stat-icon-wrap">
+                <span class="lgp-stat-icon dashicons dashicons-admin-page"></span>
+            </div>
+            <div class="lgp-stat-body">
                 <span class="lgp-stat-number" id="lgp-affected-count"><?php echo esc_html( $affected ); ?></span>
                 <span class="lgp-stat-label"><?php esc_html_e( 'Affected Pages', 'linkguard' ); ?></span>
             </div>
         </div>
 
         <div class="lgp-stat-card lgp-stat-card--404">
-            <span class="lgp-stat-icon dashicons dashicons-dismiss"></span>
-            <div>
+            <div class="lgp-stat-icon-wrap">
+                <span class="lgp-stat-icon dashicons dashicons-dismiss"></span>
+            </div>
+            <div class="lgp-stat-body">
                 <span class="lgp-stat-number"><?php echo esc_html( $count_404 ); ?></span>
                 <span class="lgp-stat-label"><?php esc_html_e( '404 Not Found', 'linkguard' ); ?></span>
             </div>
         </div>
 
         <div class="lgp-stat-card lgp-stat-card--timeout">
-            <span class="lgp-stat-icon dashicons dashicons-clock"></span>
-            <div>
+            <div class="lgp-stat-icon-wrap">
+                <span class="lgp-stat-icon dashicons dashicons-clock"></span>
+            </div>
+            <div class="lgp-stat-body">
                 <span class="lgp-stat-number"><?php echo esc_html( $count_timeout ); ?></span>
                 <span class="lgp-stat-label"><?php esc_html_e( 'Timeouts / Errors', 'linkguard' ); ?></span>
             </div>
         </div>
 
         <div class="lgp-stat-card lgp-stat-card--image">
-            <span class="lgp-stat-icon dashicons dashicons-format-image"></span>
-            <div>
+            <div class="lgp-stat-icon-wrap">
+                <span class="lgp-stat-icon dashicons dashicons-format-image"></span>
+            </div>
+            <div class="lgp-stat-body">
                 <span class="lgp-stat-number"><?php echo esc_html( $count_images ); ?></span>
                 <span class="lgp-stat-label"><?php esc_html_e( 'Broken Images', 'linkguard' ); ?></span>
             </div>
         </div>
 
         <div class="lgp-stat-card lgp-stat-card--scan">
-            <span class="lgp-stat-icon dashicons dashicons-calendar-alt"></span>
-            <div>
+            <div class="lgp-stat-icon-wrap">
+                <span class="lgp-stat-icon dashicons dashicons-calendar-alt"></span>
+            </div>
+            <div class="lgp-stat-body">
                 <span class="lgp-stat-number lgp-last-scan-val" id="lgp-last-scan">
                     <?php echo $last_scan ? esc_html( $last_scan ) : esc_html__( 'Never', 'linkguard' ); ?>
                 </span>
@@ -98,7 +109,6 @@ $count_links   = $by_type['link']      ?? 0;
             <span class="dashicons dashicons-update lgp-btn-icon"></span>
             <?php esc_html_e( 'Scan Now', 'linkguard' ); ?>
         </button>
-
         <div id="lgp-scan-message" class="lgp-scan-message" style="display:none;" role="alert" aria-live="polite"></div>
     </div>
 
@@ -133,7 +143,7 @@ $count_links   = $by_type['link']      ?? 0;
             <span class="dashicons dashicons-randomize"></span>
             <?php esc_html_e( 'Add 301 Redirect', 'linkguard' ); ?>
         </h2>
-        <p class="lgp-modal-desc"><?php esc_html_e( 'Visitors hitting the broken URL will be permanently redirected to your target.', 'linkguard' ); ?></p>
+        <p class="lgp-modal-desc"><?php esc_html_e( 'Visitors hitting this broken URL will be permanently redirected to your target.', 'linkguard' ); ?></p>
         <div class="lgp-modal-fields">
             <div class="lgp-modal-field">
                 <label for="lgp-modal-source"><?php esc_html_e( 'Source (broken URL)', 'linkguard' ); ?></label>

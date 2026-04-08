@@ -383,12 +383,14 @@ function lgp_output_links_table( $links, $total, $current_page, $per_page ) {
                 <td><?php echo esc_html( $link->anchor_text ); ?></td>
                 <td><?php echo esc_html( $link->detected_at ); ?></td>
                 <td class="lgp-actions">
-                    <?php if ( ( $link->link_type ?? 'link' ) === 'link' ) : ?>
-                    <button class="button button-small lgp-add-redirect-btn"
+                    <button class="button button-small button-primary lgp-add-redirect-btn"
                         data-source="<?php echo esc_attr( $link->broken_url ); ?>"
                         data-link-id="<?php echo esc_attr( $link->id ); ?>"
-                    ><?php esc_html_e( '301', 'linkguard' ); ?></button>
-                    <?php endif; ?>
+                        title="<?php echo ( $link->link_type ?? 'link' ) === 'image' ? esc_attr__( 'Redirect broken image URL', 'linkguard' ) : esc_attr__( 'Add 301 redirect', 'linkguard' ); ?>"
+                    >
+                        <span class="dashicons <?php echo ( $link->link_type ?? 'link' ) === 'image' ? 'dashicons-format-image' : 'dashicons-randomize'; ?>" style="font-size:12px;width:12px;height:12px;margin-top:4px;margin-right:2px;"></span>
+                        301
+                    </button>
                     <button class="button button-small lgp-ignore-btn"
                         data-url="<?php echo esc_attr( $link->broken_url ); ?>"
                         data-id="<?php echo esc_attr( $link->id ); ?>"

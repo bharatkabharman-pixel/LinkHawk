@@ -278,6 +278,57 @@ function lgp_get_redirects() {
     );
 }
 
+function lgp_count_redirects() {
+    global $wpdb;
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}linkguard_redirects" );
+}
+
+function lgp_get_redirects_paged( $page = 1, $per_page = 20, $orderby = 'created_at', $order = 'DESC', $search = '' ) {
+    global $wpdb;
+
+    $allowed_cols  = [ 'source_url', 'target_url', 'hit_count', 'created_at' ];
+    $allowed_order = [ 'ASC', 'DESC' ];
+    $orderby = in_array( $orderby, $allowed_cols, true )  ? $orderby : 'created_at';
+    $order   = in_array( strtoupper( $order ), $allowed_order, true ) ? strtoupper( $order ) : 'DESC';
+    $offset  = ( max( 1, (int) $page ) - 1 ) * (int) $per_page;
+
+    if ( $search ) {
+        $like = '%' . $wpdb->esc_like( $search ) . '%';
+        // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+        return $wpdb->get_results(
+            $wpdb->prepare(
+                "SELECT * FROM {$wpdb->prefix}linkguard_redirects
+                  WHERE source_url LIKE %s OR target_url LIKE %s
+                  ORDER BY {$orderby} {$order}
+                  LIMIT %d OFFSET %d",
+                $like, $like, (int) $per_page, $offset
+            )
+        );
+    }
+
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    return $wpdb->get_results(
+        $wpdb->prepare(
+            "SELECT * FROM {$wpdb->prefix}linkguard_redirects ORDER BY {$orderby} {$order} LIMIT %d OFFSET %d",
+            (int) $per_page,
+            $offset
+        )
+    );
+}
+
+function lgp_count_redirects_search( $search ) {
+    global $wpdb;
+    $like = '%' . $wpdb->esc_like( $search ) . '%';
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    return (int) $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}linkguard_redirects WHERE source_url LIKE %s OR target_url LIKE %s",
+            $like, $like
+        )
+    );
+}
+
 function lgp_insert_redirect( $source, $target ) {
     global $wpdb;
 

@@ -309,25 +309,30 @@
     } );
 
     // ── Redirects page: delete ────────────────────────────────────────────────
+    // Nonce is embedded in each button's data-nonce attribute (reliable on all pages).
 
     $( document ).on( 'click', '.lgp-delete-redirect-btn', function () {
-        var $btn = $( this ).prop( 'disabled', true );
-        var id   = $btn.data( 'id' );
+        var $btn  = $( this ).prop( 'disabled', true );
+        var id    = $btn.data( 'id' );
+        // Use button's own data-nonce first, fall back to lgpData if available.
+        var nonce = $btn.data( 'nonce' ) || ( typeof lgpData !== 'undefined' ? lgpData.delRedNonce : '' );
+        var ajaxUrl = typeof lgpData !== 'undefined' ? lgpData.ajaxUrl : ajaxurl;
 
-        if ( ! window.confirm( lgpData.i18n.confirm ) ) { $btn.prop( 'disabled', false ); return; }
+        if ( ! window.confirm( '301 redirect delete kar dein?' ) ) { $btn.prop( 'disabled', false ); return; }
 
-        $.post( lgpData.ajaxUrl, { action: 'lgp_delete_redirect', nonce: lgpData.delRedNonce, id: id } )
+        $.post( ajaxUrl, { action: 'lgp_delete_redirect', nonce: nonce, id: id } )
             .done( function ( res ) {
                 if ( res.success ) {
                     $( '#lgp-redir-row-' + id ).fadeOut( 250, function () {
                         $( this ).remove();
                         if ( $( '#lgp-redirects-table tbody tr' ).length === 0 ) {
-                            $( '#lgp-redirects-table' ).replaceWith( '<p class="lgp-no-results">No redirects configured yet.</p>' );
+                            $( '#lgp-redirects-table' ).closest( '.lgp-table-wrap' )
+                                .replaceWith( '<p class="lgp-no-results">Koi redirect nahi hai abhi.</p>' );
                         }
                     } );
-                } else { $btn.prop( 'disabled', false ); alert( errText( res ) ); }
+                } else { $btn.prop( 'disabled', false ); alert( ( res.data && res.data.message ) || 'Error.' ); }
             } )
-            .fail( function () { $btn.prop( 'disabled', false ); } );
+            .fail( function () { $btn.prop( 'disabled', false ); alert( 'Request failed. Try again.' ); } );
     } );
 
     // ── Settings page: unignore URL ───────────────────────────────────────────
