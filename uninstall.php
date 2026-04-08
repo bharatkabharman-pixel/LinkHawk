@@ -19,6 +19,7 @@ $options = [
     'lgp_email_notify',
     'lgp_notify_email',
     'lgp_excluded_domains',
+    'lgp_scan_image_links',
 ];
 
 foreach ( $options as $option ) {

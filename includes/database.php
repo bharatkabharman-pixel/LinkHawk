@@ -17,6 +17,7 @@ function lgp_create_tables() {
         broken_url  TEXT NOT NULL,
         anchor_text TEXT NOT NULL,
         http_status VARCHAR(20) NOT NULL DEFAULT '',
+        link_type   VARCHAR(10) NOT NULL DEFAULT 'link',
         detected_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (id),
         KEY post_id (post_id)
@@ -32,9 +33,19 @@ function lgp_create_tables() {
         KEY source_url (source_url(191))
     ) $charset_collate;";
 
+    $sql_ignored = "CREATE TABLE IF NOT EXISTS {$wpdb->prefix}linkguard_ignored (
+        id         BIGINT(20) UNSIGNED NOT NULL AUTO_INCREMENT,
+        url        TEXT NOT NULL,
+        url_hash   CHAR(32) NOT NULL,
+        ignored_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (id),
+        UNIQUE KEY url_hash (url_hash)
+    ) $charset_collate;";
+
     require_once ABSPATH . 'wp-admin/includes/upgrade.php';
     dbDelta( $sql_links );
     dbDelta( $sql_redirects );
+    dbDelta( $sql_ignored );
 
     update_option( 'linkguard_db_version', LINKGUARD_VERSION );
 }
@@ -48,16 +59,12 @@ function lgp_drop_tables() {
     $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}linkguard_links" );
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}linkguard_redirects" );
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}linkguard_ignored" );
 }
 
 // ── Broken links ──────────────────────────────────────────────────────────────
 
-/**
- * Return broken links with optional pagination.
- *
- * @param int|null $post_id  Filter by post.
- * @return array
- */
 function lgp_get_broken_links( $post_id = null ) {
     global $wpdb;
 
@@ -77,13 +84,6 @@ function lgp_get_broken_links( $post_id = null ) {
     );
 }
 
-/**
- * Return a single page of broken links.
- *
- * @param int $page     1-based page number.
- * @param int $per_page Rows per page.
- * @return array
- */
 function lgp_get_broken_links_paged( $page = 1, $per_page = 20 ) {
     global $wpdb;
 
@@ -99,22 +99,12 @@ function lgp_get_broken_links_paged( $page = 1, $per_page = 20 ) {
     );
 }
 
-/**
- * Count total broken links.
- *
- * @return int
- */
 function lgp_count_broken_links() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     return (int) $wpdb->get_var( "SELECT COUNT(*) FROM {$wpdb->prefix}linkguard_links" );
 }
 
-/**
- * Count broken links grouped by http_status.
- *
- * @return array  e.g. [ '404' => 5, 'timeout' => 2 ]
- */
 function lgp_count_by_status() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
@@ -129,11 +119,20 @@ function lgp_count_by_status() {
     return $map;
 }
 
-/**
- * Count distinct posts that have at least one broken link.
- *
- * @return int
- */
+function lgp_count_by_type() {
+    global $wpdb;
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    $rows = $wpdb->get_results(
+        "SELECT link_type, COUNT(*) AS cnt FROM {$wpdb->prefix}linkguard_links GROUP BY link_type"
+    );
+
+    $map = [];
+    foreach ( $rows as $row ) {
+        $map[ $row->link_type ] = (int) $row->cnt;
+    }
+    return $map;
+}
+
 function lgp_count_affected_posts() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
@@ -142,11 +141,6 @@ function lgp_count_affected_posts() {
     );
 }
 
-/**
- * Insert or update a broken link record.
- *
- * @param array $data
- */
 function lgp_upsert_link( array $data ) {
     global $wpdb;
 
@@ -168,10 +162,11 @@ function lgp_upsert_link( array $data ) {
             [
                 'http_status' => sanitize_text_field( $data['http_status'] ),
                 'anchor_text' => sanitize_text_field( $data['anchor_text'] ),
+                'link_type'   => sanitize_text_field( $data['link_type'] ?? 'link' ),
                 'detected_at' => current_time( 'mysql' ),
             ],
             [ 'id' => (int) $existing_id ],
-            [ '%s', '%s', '%s' ],
+            [ '%s', '%s', '%s', '%s' ],
             [ '%d' ]
         );
     } else {
@@ -185,18 +180,14 @@ function lgp_upsert_link( array $data ) {
                 'broken_url'  => esc_url_raw( $data['broken_url'] ),
                 'anchor_text' => sanitize_text_field( $data['anchor_text'] ),
                 'http_status' => sanitize_text_field( $data['http_status'] ),
+                'link_type'   => sanitize_text_field( $data['link_type'] ?? 'link' ),
                 'detected_at' => current_time( 'mysql' ),
             ],
-            [ '%d', '%s', '%s', '%s', '%s', '%s', '%s' ]
+            [ '%d', '%s', '%s', '%s', '%s', '%s', '%s', '%s' ]
         );
     }
 }
 
-/**
- * Delete a single broken-link record.
- *
- * @param int $id
- */
 function lgp_delete_link( $id ) {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
@@ -207,22 +198,78 @@ function lgp_delete_link( $id ) {
     );
 }
 
-/**
- * Truncate the broken links table before a fresh scan.
- */
 function lgp_clear_links() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
     $wpdb->query( "TRUNCATE TABLE {$wpdb->prefix}linkguard_links" );
 }
 
-// ── Redirects ─────────────────────────────────────────────────────────────────
+// ── Ignore list ───────────────────────────────────────────────────────────────
+
+function lgp_ignore_url( $url ) {
+    global $wpdb;
+
+    $url  = esc_url_raw( $url );
+    $hash = md5( $url );
+
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    $exists = $wpdb->get_var(
+        $wpdb->prepare(
+            "SELECT id FROM {$wpdb->prefix}linkguard_ignored WHERE url_hash = %s LIMIT 1",
+            $hash
+        )
+    );
+
+    if ( $exists ) {
+        return false;
+    }
+
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    $wpdb->insert(
+        $wpdb->prefix . 'linkguard_ignored',
+        [
+            'url'        => $url,
+            'url_hash'   => $hash,
+            'ignored_at' => current_time( 'mysql' ),
+        ],
+        [ '%s', '%s', '%s' ]
+    );
+
+    return (bool) $wpdb->insert_id;
+}
+
+function lgp_unignore_url( $id ) {
+    global $wpdb;
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    $wpdb->delete(
+        $wpdb->prefix . 'linkguard_ignored',
+        [ 'id' => (int) $id ],
+        [ '%d' ]
+    );
+}
+
+function lgp_get_ignored_urls() {
+    global $wpdb;
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    return $wpdb->get_results(
+        "SELECT * FROM {$wpdb->prefix}linkguard_ignored ORDER BY ignored_at DESC"
+    );
+}
 
 /**
- * Return all redirect rules.
+ * Return all ignored URL md5 hashes for fast lookup during scan.
  *
- * @return array
+ * @return string[]
  */
+function lgp_get_ignored_url_hashes() {
+    global $wpdb;
+    // phpcs:ignore WordPress.DB.DirectDatabaseQuery
+    $rows = $wpdb->get_results( "SELECT url_hash FROM {$wpdb->prefix}linkguard_ignored" );
+    return array_column( $rows, 'url_hash' );
+}
+
+// ── Redirects ─────────────────────────────────────────────────────────────────
+
 function lgp_get_redirects() {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
@@ -231,13 +278,6 @@ function lgp_get_redirects() {
     );
 }
 
-/**
- * Insert a new redirect rule.
- *
- * @param string $source
- * @param string $target
- * @return int|false
- */
 function lgp_insert_redirect( $source, $target ) {
     global $wpdb;
 
@@ -270,11 +310,6 @@ function lgp_insert_redirect( $source, $target ) {
     return $wpdb->insert_id ? (int) $wpdb->insert_id : false;
 }
 
-/**
- * Delete a redirect rule.
- *
- * @param int $id
- */
 function lgp_delete_redirect( $id ) {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery
@@ -285,11 +320,6 @@ function lgp_delete_redirect( $id ) {
     );
 }
 
-/**
- * Increment hit counter for a redirect.
- *
- * @param int $id
- */
 function lgp_increment_redirect_hits( $id ) {
     global $wpdb;
     // phpcs:ignore WordPress.DB.DirectDatabaseQuery

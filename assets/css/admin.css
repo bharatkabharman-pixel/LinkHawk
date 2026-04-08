@@ -1,17 +1,10 @@
 /* ============================================================
    LinkHawk – Admin Styles  |  trsoftech.com
-   WordPress 6.0+ compatible
+   WordPress 6.0+ compatible  |  v1.1
    ============================================================ */
 
-/* ── Reset / Base ────────────────────────────────────────── */
-
-.lgp-wrap * {
-    box-sizing: border-box;
-}
-
-.lgp-wrap {
-    max-width: 1200px;
-}
+.lgp-wrap * { box-sizing: border-box; }
+.lgp-wrap    { max-width: 1200px; }
 
 /* ── Page header ─────────────────────────────────────────── */
 
@@ -39,19 +32,15 @@
     height: 1.6rem;
 }
 
-.lgp-header-actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-}
+.lgp-header-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 
 /* ── Stats bar ───────────────────────────────────────────── */
 
 .lgp-stats-bar {
     display: flex;
-    gap: 14px;
+    gap: 12px;
     flex-wrap: wrap;
-    margin-bottom: 24px;
+    margin-bottom: 20px;
 }
 
 .lgp-stat-card {
@@ -59,66 +48,63 @@
     border: 1px solid #dcdcde;
     border-left: 4px solid var(--wp-admin-theme-color, #2271b1);
     border-radius: 5px;
-    padding: 14px 18px;
-    min-width: 170px;
+    padding: 14px 16px;
+    min-width: 155px;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     box-shadow: 0 1px 3px rgba(0,0,0,.06);
     transition: box-shadow .15s;
 }
 
-.lgp-stat-card:hover {
-    box-shadow: 0 3px 8px rgba(0,0,0,.1);
-}
+.lgp-stat-card:hover { box-shadow: 0 3px 8px rgba(0,0,0,.1); }
 
 .lgp-stat-icon {
-    font-size: 2rem;
-    width: 2rem;
-    height: 2rem;
+    font-size: 1.9rem;
+    width: 1.9rem;
+    height: 1.9rem;
     color: var(--wp-admin-theme-color, #2271b1);
     flex-shrink: 0;
 }
 
 .lgp-stat-number {
     display: block;
-    font-size: 1.8rem;
+    font-size: 1.75rem;
     font-weight: 700;
     line-height: 1;
     color: #1d2327;
 }
 
-.lgp-last-scan-val {
-    font-size: 0.78rem !important;
-    font-weight: 500 !important;
-    word-break: break-all;
-}
+.lgp-last-scan-val { font-size: .76rem !important; font-weight: 500 !important; word-break: break-all; }
 
 .lgp-stat-label {
     display: block;
-    font-size: 0.72rem;
+    font-size: .7rem;
     color: #646970;
     text-transform: uppercase;
     letter-spacing: .04em;
     margin-top: 3px;
 }
 
-/* State variants */
-.lgp-stat-card--alert  { border-left-color: #d63638; }
-.lgp-stat-card--alert  .lgp-stat-number,
-.lgp-stat-card--alert  .lgp-stat-icon  { color: #d63638; }
+/* Stat card variants */
+.lgp-stat-card--alert   { border-left-color: #d63638; }
+.lgp-stat-card--alert   .lgp-stat-number,
+.lgp-stat-card--alert   .lgp-stat-icon  { color: #d63638; }
 
-.lgp-stat-card--ok     { border-left-color: #00a32a; }
-.lgp-stat-card--ok     .lgp-stat-number,
-.lgp-stat-card--ok     .lgp-stat-icon  { color: #00a32a; }
+.lgp-stat-card--ok      { border-left-color: #00a32a; }
+.lgp-stat-card--ok      .lgp-stat-number,
+.lgp-stat-card--ok      .lgp-stat-icon  { color: #00a32a; }
 
-.lgp-stat-card--404    { border-left-color: #d63638; }
-.lgp-stat-card--404    .lgp-stat-icon  { color: #d63638; }
+.lgp-stat-card--404     { border-left-color: #d63638; }
+.lgp-stat-card--404     .lgp-stat-icon  { color: #d63638; }
 
 .lgp-stat-card--timeout { border-left-color: #b26200; }
-.lgp-stat-card--timeout .lgp-stat-icon { color: #b26200; }
+.lgp-stat-card--timeout .lgp-stat-icon  { color: #b26200; }
 
-.lgp-stat-card--scan   { border-left-color: #2271b1; }
+.lgp-stat-card--image   { border-left-color: #7c3aed; }
+.lgp-stat-card--image   .lgp-stat-icon  { color: #7c3aed; }
+
+.lgp-stat-card--scan    { border-left-color: #2271b1; }
 
 /* ── Toolbar ─────────────────────────────────────────────── */
 
@@ -127,39 +113,62 @@
     align-items: center;
     gap: 16px;
     flex-wrap: wrap;
+    margin-bottom: 16px;
+}
+
+.lgp-btn-icon { vertical-align: middle; margin: -2px 4px 0 0; }
+
+/* ── Progress bar ────────────────────────────────────────── */
+
+#lgp-progress-wrap {
+    background: #fff;
+    border: 1px solid #dcdcde;
+    border-radius: 5px;
+    padding: 16px 20px;
     margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,.05);
 }
 
-.lgp-btn-icon {
-    vertical-align: middle;
-    margin: -2px 4px 0 0;
-}
-
-/* ── Spinner ─────────────────────────────────────────────── */
-
-.lgp-spinner {
-    display: inline-flex;
+.lgp-progress-header {
+    display: flex;
+    justify-content: space-between;
     align-items: center;
-    gap: 9px;
-    color: #50575e;
-    font-style: italic;
+    margin-bottom: 10px;
+    font-weight: 600;
     font-size: .9rem;
+    color: #1d2327;
 }
 
-.lgp-spinner-ring {
-    display: inline-block;
-    width: 20px;
-    height: 20px;
-    border: 3px solid #dcdcde;
-    border-top-color: var(--wp-admin-theme-color, #2271b1);
-    border-radius: 50%;
-    animation: lgp-spin .65s linear infinite;
-    flex-shrink: 0;
+#lgp-progress-counter { color: #646970; font-weight: 400; }
+
+.lgp-progress-bar-track {
+    height: 10px;
+    background: #f0f0f1;
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
 }
 
-@keyframes lgp-spin {
-    to { transform: rotate(360deg); }
+.lgp-progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--wp-admin-theme-color, #2271b1), #4f94d4);
+    border-radius: 10px;
+    transition: width .3s ease;
+    min-width: 4px;
 }
+
+.lgp-progress-bar-fill.lgp-progress-done {
+    background: linear-gradient(90deg, #00a32a, #4caf50);
+}
+
+.lgp-progress-stats {
+    display: flex;
+    gap: 20px;
+    font-size: .82rem;
+    color: #646970;
+}
+
+.lgp-progress-stats strong { color: #1d2327; }
 
 /* ── Scan message ────────────────────────────────────────── */
 
@@ -174,17 +183,8 @@
     border: 1px solid transparent;
 }
 
-.lgp-scan-message--success {
-    background: #edfaef;
-    color: #00a32a;
-    border-color: #b3deba;
-}
-
-.lgp-scan-message--error {
-    background: #fce8e8;
-    color: #d63638;
-    border-color: #f5c6c6;
-}
+.lgp-scan-message--success { background: #edfaef; color: #00a32a; border-color: #b3deba; }
+.lgp-scan-message--error   { background: #fce8e8; color: #d63638; border-color: #f5c6c6; }
 
 /* ── Table toolbar ───────────────────────────────────────── */
 
@@ -205,11 +205,7 @@
     font-weight: 500;
 }
 
-.lgp-table-count {
-    margin-left: auto;
-    color: #646970;
-    font-size: .875rem;
-}
+.lgp-table-count { margin-left: auto; color: #646970; font-size: .875rem; }
 
 /* ── Card ────────────────────────────────────────────────── */
 
@@ -238,50 +234,29 @@
     border-radius: 4px;
 }
 
-.lgp-links-table,
-.lgp-redirects-table {
-    min-width: 750px;
-}
+.lgp-links-table { min-width: 820px; }
 
 .lgp-links-table th,
 .lgp-links-table td,
 .lgp-redirects-table th,
-.lgp-redirects-table td {
-    vertical-align: middle;
-    padding: 9px 12px;
-}
+.lgp-redirects-table td { vertical-align: middle; padding: 9px 12px; }
 
-.lgp-col-cb {
-    width: 32px;
-    padding: 9px 8px !important;
-}
+.lgp-col-cb { width: 32px; padding: 9px 8px !important; }
 
 .lgp-url-cell {
-    max-width: 240px;
+    max-width: 220px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
     font-family: 'SFMono-Regular', Consolas, monospace;
-    font-size: .82rem;
+    font-size: .8rem;
 }
 
-.lgp-col-hits {
-    width: 70px;
-    text-align: center !important;
-}
+.lgp-col-hits   { width: 70px; text-align: center !important; }
+.lgp-col-action { width: 80px; text-align: center !important; }
 
-.lgp-col-action {
-    width: 80px;
-    text-align: center !important;
-}
-
-.lgp-actions {
-    white-space: nowrap;
-}
-
-.lgp-actions .button + .button {
-    margin-left: 4px;
-}
+.lgp-actions { white-space: nowrap; }
+.lgp-actions .button + .button { margin-left: 3px; }
 
 .lgp-hits-badge {
     display: inline-block;
@@ -303,61 +278,37 @@
     padding: 16px 0 4px;
 }
 
-.lgp-page-info {
-    color: #646970;
-    font-size: .875rem;
-}
+.lgp-page-info { color: #646970; font-size: .875rem; }
 
 /* ── Status badges ───────────────────────────────────────── */
 
 .lgp-badge {
-    display: inline-block;
-    padding: 3px 9px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 3px 8px;
     border-radius: 20px;
-    font-size: .75rem;
+    font-size: .72rem;
     font-weight: 700;
     letter-spacing: .02em;
     white-space: nowrap;
 }
 
 .lgp-badge-404,
-.lgp-badge-4xx {
-    background: #fce8e8;
-    color: #c22b2c;
-    border: 1px solid #f0b0b0;
-}
+.lgp-badge-4xx  { background: #fce8e8; color: #c22b2c; border: 1px solid #f0b0b0; }
 
 .lgp-badge-timeout,
-.lgp-badge-error {
-    background: #fff3cd;
-    color: #8a5700;
-    border: 1px solid #f0d070;
-}
+.lgp-badge-error { background: #fff3cd; color: #8a5700; border: 1px solid #f0d070; }
 
-.lgp-badge-5xx {
-    background: #fce8e8;
-    color: #7a1819;
-    border: 1px solid #f0b0b0;
-}
+.lgp-badge-5xx  { background: #fce8e8; color: #7a1819; border: 1px solid #f0b0b0; }
+.lgp-badge-other { background: #f0f0f1; color: #50575e; border: 1px solid #dcdcde; }
+.lgp-badge-ok   { background: #edfaef; color: #00a32a; border: 1px solid #b3deba; }
 
-.lgp-badge-other {
-    background: #f0f0f1;
-    color: #50575e;
-    border: 1px solid #dcdcde;
-}
+/* Type badges */
+.lgp-badge-link  { background: #e8f0fe; color: #1a56db; border: 1px solid #b4c8fc; }
+.lgp-badge-image { background: #f0e8ff; color: #7c3aed; border: 1px solid #d4b8fc; }
 
-.lgp-badge-ok {
-    background: #edfaef;
-    color: #00a32a;
-    border: 1px solid #b3deba;
-}
-
-.lgp-no-results {
-    color: #646970;
-    font-style: italic;
-    padding: 16px 0 4px;
-    margin: 0;
-}
+.lgp-no-results { color: #646970; font-style: italic; padding: 16px 0 4px; margin: 0; }
 
 /* ── Modal ───────────────────────────────────────────────── */
 
@@ -411,32 +362,16 @@
     font-size: 1.15rem;
 }
 
-.lgp-modal-box h2 .dashicons {
-    color: var(--wp-admin-theme-color, #2271b1);
-}
+.lgp-modal-box h2 .dashicons { color: var(--wp-admin-theme-color, #2271b1); }
+.lgp-modal-desc { color: #646970; font-size: .875rem; margin: 0 0 20px; }
 
-.lgp-modal-desc {
-    color: #646970;
-    font-size: .875rem;
-    margin: 0 0 20px;
-}
-
-.lgp-modal-fields {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    margin-bottom: 18px;
-}
+.lgp-modal-fields { display: flex; flex-direction: column; gap: 14px; margin-bottom: 18px; }
 
 .lgp-modal-field label {
     display: block;
     font-weight: 600;
     margin-bottom: 5px;
     font-size: .875rem;
-}
-
-.lgp-modal-field input {
-    border-radius: 4px;
 }
 
 .lgp-modal-error {
@@ -459,70 +394,23 @@
 
 /* ── About card ──────────────────────────────────────────── */
 
-.lgp-about-card {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 16px 20px;
-}
-
-.lgp-about-logo .dashicons {
-    font-size: 2.5rem;
-    width: 2.5rem;
-    height: 2.5rem;
-    color: var(--wp-admin-theme-color, #2271b1);
-}
-
-.lgp-about-text {
-    font-size: .9rem;
-    color: #50575e;
-    line-height: 1.7;
-}
+.lgp-about-card { display: flex; align-items: center; gap: 16px; padding: 16px 20px; }
+.lgp-about-logo .dashicons { font-size: 2.5rem; width: 2.5rem; height: 2.5rem; color: var(--wp-admin-theme-color, #2271b1); }
+.lgp-about-text { font-size: .9rem; color: #50575e; line-height: 1.7; }
 
 /* ── Responsive ──────────────────────────────────────────── */
 
 @media screen and (max-width: 960px) {
-    .lgp-stats-bar {
-        gap: 10px;
-    }
-
-    .lgp-stat-card {
-        min-width: 140px;
-        padding: 12px 14px;
-    }
-
-    .lgp-stat-number {
-        font-size: 1.5rem;
-    }
+    .lgp-stat-card { min-width: 135px; padding: 12px 14px; }
+    .lgp-stat-number { font-size: 1.5rem; }
 }
 
 @media screen and (max-width: 600px) {
-    .lgp-page-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .lgp-stats-bar {
-        flex-direction: column;
-    }
-
-    .lgp-stat-card {
-        min-width: 0;
-        width: 100%;
-    }
-
-    .lgp-table-count {
-        margin-left: 0;
-        width: 100%;
-    }
-
-    .lgp-modal-footer {
-        flex-direction: column-reverse;
-    }
-
-    .lgp-modal-footer .button {
-        width: 100%;
-        text-align: center;
-        justify-content: center;
-    }
+    .lgp-page-header   { flex-direction: column; align-items: flex-start; }
+    .lgp-stats-bar     { flex-direction: column; }
+    .lgp-stat-card     { min-width: 0; width: 100%; }
+    .lgp-table-count   { margin-left: 0; width: 100%; }
+    .lgp-modal-footer  { flex-direction: column-reverse; }
+    .lgp-modal-footer .button { width: 100%; text-align: center; }
+    .lgp-progress-stats { flex-direction: column; gap: 6px; }
 }

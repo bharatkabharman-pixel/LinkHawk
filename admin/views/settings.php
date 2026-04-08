@@ -179,6 +179,45 @@ $next_cron = wp_next_scheduled( 'lgp_daily_scan' );
             </table>
         </div>
 
+        <!-- ── Ignored URLs ── -->
+        <div class="lgp-card">
+            <h2><?php esc_html_e( 'Ignored URLs', 'linkguard' ); ?></h2>
+            <p class="description" style="margin-bottom:16px;">
+                <?php esc_html_e( 'These URLs are permanently skipped during scans. Click "Remove" to re-enable checking.', 'linkguard' ); ?>
+            </p>
+            <?php $ignored = lgp_get_ignored_urls(); ?>
+            <?php if ( empty( $ignored ) ) : ?>
+                <p class="lgp-no-results"><?php esc_html_e( 'No URLs ignored yet. Click "Ignore" on any broken link to add it here.', 'linkguard' ); ?></p>
+            <?php else : ?>
+                <table class="wp-list-table widefat fixed striped" id="lgp-ignored-table">
+                    <thead>
+                        <tr>
+                            <th><?php esc_html_e( 'Ignored URL', 'linkguard' ); ?></th>
+                            <th style="width:160px;"><?php esc_html_e( 'Ignored At', 'linkguard' ); ?></th>
+                            <th style="width:80px;"><?php esc_html_e( 'Action', 'linkguard' ); ?></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ( $ignored as $item ) : ?>
+                        <tr id="lgp-ignored-row-<?php echo esc_attr( $item->id ); ?>">
+                            <td class="lgp-url-cell">
+                                <a href="<?php echo esc_url( $item->url ); ?>" target="_blank" rel="noopener nofollow">
+                                    <?php echo esc_html( $item->url ); ?>
+                                </a>
+                            </td>
+                            <td><?php echo esc_html( $item->ignored_at ); ?></td>
+                            <td>
+                                <button class="button button-small lgp-unignore-btn" data-id="<?php echo esc_attr( $item->id ); ?>">
+                                    <?php esc_html_e( 'Remove', 'linkguard' ); ?>
+                                </button>
+                            </td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php endif; ?>
+        </div>
+
         <!-- ── About ── -->
         <div class="lgp-card lgp-about-card">
             <div class="lgp-about-logo">
